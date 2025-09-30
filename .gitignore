@@ -44,3 +44,13 @@ out/
 
 
 .env
+
+
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
+
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+!gradlew.bat
