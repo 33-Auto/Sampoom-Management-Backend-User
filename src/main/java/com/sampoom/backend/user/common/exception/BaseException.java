@@ -1,4 +1,4 @@
-package com.sampoom.backend.common.exception;
+package com.sampoom.backend.user.common.exception;
 
 import lombok.AccessLevel;
 import lombok.Getter;
