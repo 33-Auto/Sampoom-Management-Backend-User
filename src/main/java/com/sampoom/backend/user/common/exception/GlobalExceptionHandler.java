@@ -1,6 +1,6 @@
-package com.sampoom.backend.common.exception;
+package com.sampoom.backend.user.common.exception;
 
-import com.sampoom.backend.common.response.ApiResponse;
+import com.sampoom.backend.user.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
