@@ -1,4 +1,4 @@
-package com.sampoom.backend;
+package com.sampoom.backend.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
