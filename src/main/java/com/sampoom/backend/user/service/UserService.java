@@ -4,6 +4,7 @@ import com.sampoom.backend.user.common.response.ErrorStatus;
 import com.sampoom.backend.user.controller.dto.request.SignupRequest;
 import com.sampoom.backend.user.controller.dto.response.SignupResponse;
 import com.sampoom.backend.user.domain.User;
+import com.sampoom.backend.user.external.dto.UserResponse;
 import com.sampoom.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,14 +44,29 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public boolean verifyLogin(String email, String rawPassword) {
-        System.out.println("🔥 [DEBUG] verifyLogin 호출됨 - email=" + email + ", password=" + rawPassword);
-        var user = userRepository.findByEmail(email)
+    public UserResponse getUserByEmail(String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()->new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다."));
+
+
+        return UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .role(user.getRole())
+                .password(user.getPassword())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getUserById(Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        System.out.println("🔥 DB 비밀번호: " + user.getPassword());
-        System.out.println("🔥 입력 비밀번호: " + rawPassword);
-        boolean result = passwordEncoder.matches(rawPassword, user.getPassword());
-        System.out.println("🔥 matches 결과: " + result);
-        return result;
+        return UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .role(user.getRole())
+                .build();
     }
 }

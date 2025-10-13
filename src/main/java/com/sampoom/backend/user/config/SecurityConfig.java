@@ -21,7 +21,8 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable())) // ✅ H2 콘솔 iframe 허용
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/user/**",
+                                "/user/signup",
+                                "/user/email/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",

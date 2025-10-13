@@ -4,7 +4,7 @@ package com.sampoom.backend.user.controller;
 import com.sampoom.backend.user.common.response.ApiResponse;
 import com.sampoom.backend.user.common.response.SuccessStatus;
 import com.sampoom.backend.user.controller.dto.request.SignupRequest;
-import com.sampoom.backend.user.controller.dto.request.VerifyLoginRequest;
+import com.sampoom.backend.user.external.dto.UserResponse;
 import com.sampoom.backend.user.controller.dto.response.SignupResponse;
 import com.sampoom.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +24,13 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.CREATED, resp);
     }
 
-    @PostMapping("/verify-login")
-    public ResponseEntity<Boolean> verifyLogin(@RequestBody VerifyLoginRequest req) {
-        boolean result = userService.verifyLogin(req.getEmail(), req.getPassword());
-        return ResponseEntity.ok(result);
+    @GetMapping("/email/{email}")
+    public UserResponse getUserByEmail(@PathVariable String email) {
+        return userService.getUserByEmail(email);
     }
 
+    @GetMapping("/id/{id}")
+    public UserResponse getUserById(@PathVariable("id") Long userId) {
+        return userService.getUserById(userId);
+    }
 }
