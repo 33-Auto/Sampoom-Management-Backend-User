@@ -20,9 +20,8 @@ import java.util.List;
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
-        // CodeQL [java/spring-disabled-csrf-protection]: suppress - Stateless JWT API so CSRF is unnecessary
         http
-                .csrf(csrf -> csrf.disable())   // JWT 는 CSRF 보호가 필요없음
+                .csrf(csrf -> csrf.disable())   // CodeQL [java/spring-disabled-csrf-protection]: suppress - Stateless JWT API라 CSRF 불필요
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/signup",
