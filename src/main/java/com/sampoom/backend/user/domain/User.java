@@ -29,9 +29,6 @@ public class User extends BaseTimeEntity {
     private String workspace;   // 직장 분류(대리점, 창고, 공장)
 
     @Column(length = 50)
-    private String location;    // 지역
-
-    @Column(length = 50)
     private String branch;      // 지점명
 
     @Column(nullable = false, length = 50)

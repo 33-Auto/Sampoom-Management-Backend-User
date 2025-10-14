@@ -20,7 +20,6 @@ public class SignupRequest {
     private String password;
 
     private String workspace;
-    private String location;
     private String branch;
 
     @NotBlank

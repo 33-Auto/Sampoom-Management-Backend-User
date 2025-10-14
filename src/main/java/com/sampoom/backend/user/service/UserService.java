@@ -28,7 +28,6 @@ public class UserService {
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .workspace(req.getWorkspace())
-                .location(req.getLocation())
                 .branch(req.getBranch())
                 .name(req.getName())
                 .position(req.getPosition())
