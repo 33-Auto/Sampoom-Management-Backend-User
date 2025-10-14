@@ -1,5 +1,8 @@
 package com.sampoom.backend.user.service;
 
+import com.sampoom.backend.user.common.exception.BaseException;
+import com.sampoom.backend.user.common.exception.ConflictException;
+import com.sampoom.backend.user.common.exception.NotFoundException;
 import com.sampoom.backend.user.common.response.ErrorStatus;
 import com.sampoom.backend.user.controller.dto.request.SignupRequest;
 import com.sampoom.backend.user.controller.dto.request.UserUpdateRequest;
@@ -10,6 +13,7 @@ import com.sampoom.backend.user.external.dto.UserResponse;
 import com.sampoom.backend.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +28,7 @@ public class UserService {
     @Transactional
     public SignupResponse signup(SignupRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new IllegalArgumentException(ErrorStatus.ALREADY_REGISTER_EMAIL_EXCEPETION.getMessage());
+            throw new ConflictException(ErrorStatus.USER_EMAIL_DUPLICATED);
         }
 
         User user = User.builder()
@@ -49,7 +53,7 @@ public class UserService {
     public UserUpdateResponse updatePartialUser(Long userId, UserUpdateRequest req) {
         // Repository 사용해서 DB에서 엔티티 조회
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
 
         // null 아닌 필드만 수정 (Dirty Checking 사용)
         if (req.getUserName() != null) {
@@ -72,7 +76,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserByEmail(String email){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(()->new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다."));
+                .orElseThrow(()->new NotFoundException(ErrorStatus.USER_BY_EMAIL_NOT_FOUND));
 
         return UserResponse.builder()
                 .userId(user.getId())
