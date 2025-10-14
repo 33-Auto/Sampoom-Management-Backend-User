@@ -7,6 +7,7 @@ import com.sampoom.backend.user.controller.dto.request.SignupRequest;
 import com.sampoom.backend.user.external.dto.UserResponse;
 import com.sampoom.backend.user.controller.dto.response.SignupResponse;
 import com.sampoom.backend.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +20,12 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<SignupResponse>> signup(@RequestBody SignupRequest req) {
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest req) {
         SignupResponse resp = userService.signup(req);
         return ApiResponse.success(SuccessStatus.CREATED, resp);
     }
 
-    @GetMapping("/email/{email}")
+    @GetMapping("/email/{email:+}")
     public UserResponse getUserByEmail(@PathVariable String email) {
         return userService.getUserByEmail(email);
     }

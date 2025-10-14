@@ -1,6 +1,6 @@
 package com.sampoom.backend.user.domain;
 
-import com.sampoom.backend.user.common.entitiy.BaseTimeEntity;
+import com.sampoom.backend.user.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
