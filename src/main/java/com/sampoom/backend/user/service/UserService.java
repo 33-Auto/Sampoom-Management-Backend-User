@@ -2,10 +2,13 @@ package com.sampoom.backend.user.service;
 
 import com.sampoom.backend.user.common.response.ErrorStatus;
 import com.sampoom.backend.user.controller.dto.request.SignupRequest;
+import com.sampoom.backend.user.controller.dto.request.UserUpdateRequest;
 import com.sampoom.backend.user.controller.dto.response.SignupResponse;
+import com.sampoom.backend.user.controller.dto.response.UserUpdateResponse;
 import com.sampoom.backend.user.domain.User;
 import com.sampoom.backend.user.external.dto.UserResponse;
 import com.sampoom.backend.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,6 +43,30 @@ public class UserService {
                 .username(saved.getUserName())
                 .email(saved.getEmail())
                 .build();
+    }
+
+    @Transactional
+    public UserUpdateResponse updatePartialUser(Long id, UserUpdateRequest req) {
+        // Repository 사용해서 DB에서 엔티티 조회
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+
+        // null 아닌 필드만 수정 (Dirty Checking 사용)
+        if (req.getUserName() != null) {
+            user.setUserName(req.getUserName());
+        }
+        if (req.getPosition() != null) {
+            user.setPosition(req.getPosition());
+        }
+        if (req.getWorkspace() != null) {
+            user.setWorkspace(req.getWorkspace());
+        }
+        if (req.getBranch() != null) {
+            user.setBranch(req.getBranch());
+        }
+
+        // 반환 DTO 생성
+        return UserUpdateResponse.from(user);
     }
 
     @Transactional(readOnly = true)

@@ -4,6 +4,8 @@ package com.sampoom.backend.user.controller;
 import com.sampoom.backend.user.common.response.ApiResponse;
 import com.sampoom.backend.user.common.response.SuccessStatus;
 import com.sampoom.backend.user.controller.dto.request.SignupRequest;
+import com.sampoom.backend.user.controller.dto.request.UserUpdateRequest;
+import com.sampoom.backend.user.controller.dto.response.UserUpdateResponse;
 import com.sampoom.backend.user.external.dto.UserResponse;
 import com.sampoom.backend.user.controller.dto.response.SignupResponse;
 import com.sampoom.backend.user.service.UserService;
@@ -23,6 +25,15 @@ public class UserController {
         SignupResponse resp = userService.signup(req);
         return ApiResponse.success(SuccessStatus.CREATED, resp);
     }
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(
+            @PathVariable Long id,
+            @RequestBody UserUpdateRequest reqs
+    ) {
+        UserUpdateResponse resp = userService.updatePartialUser(id,reqs );
+        return ApiResponse.success(SuccessStatus.OK, resp);
+    }
+
 
     @GetMapping("/email/{email:.+}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(@PathVariable String email) {

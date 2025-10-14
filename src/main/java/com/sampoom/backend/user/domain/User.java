@@ -44,4 +44,10 @@ public class User extends BaseTimeEntity {
             this.role = "ROLE_USER";
         }
     }
+
+    // 더티 체킹: 회원정보 수정용 setter만 공개 (다른 필드는 숨김)
+    public void setUserName(String userName) { this.userName = userName; }
+    public void setPosition(String position) { this.position = position; }
+    public void setWorkspace(String workspace) { this.workspace = workspace; }
+    public void setBranch(String branch) { this.branch = branch; }
 }
