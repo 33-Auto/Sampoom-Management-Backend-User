@@ -25,7 +25,7 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.CREATED, resp);
     }
 
-    @GetMapping("/email/{email:+}")
+    @GetMapping("/email/{email:.+}")
     public UserResponse getUserByEmail(@PathVariable String email) {
         return userService.getUserByEmail(email);
     }
