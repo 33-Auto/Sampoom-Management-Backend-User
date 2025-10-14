@@ -29,7 +29,7 @@ public class UserService {
                 .password(passwordEncoder.encode(req.getPassword()))
                 .workspace(req.getWorkspace())
                 .branch(req.getBranch())
-                .name(req.getName())
+                .userName(req.getUserName())
                 .position(req.getPosition())
                 .build(); // 자동 ROLE_USER, createdAt/updatedAt
 
@@ -37,7 +37,7 @@ public class UserService {
 
         return SignupResponse.builder()
                 .userId(saved.getId())
-                .username(saved.getName())
+                .username(saved.getUserName())
                 .email(saved.getEmail())
                 .build();
     }
@@ -51,21 +51,9 @@ public class UserService {
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .name(user.getName())
+                .userName(user.getUserName())
                 .role(user.getRole())
                 .password(user.getPassword())
-                .build();
-    }
-
-    @Transactional(readOnly = true)
-    public UserResponse getUserById(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        return UserResponse.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .name(user.getName())
-                .role(user.getRole())
                 .build();
     }
 }

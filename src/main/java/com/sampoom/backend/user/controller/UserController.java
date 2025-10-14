@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -28,10 +27,5 @@ public class UserController {
     @GetMapping("/email/{email:.+}")
     public UserResponse getUserByEmail(@PathVariable String email) {
         return userService.getUserByEmail(email);
-    }
-
-    @GetMapping("/id/{id}")
-    public UserResponse getUserById(@PathVariable("id") Long userId) {
-        return userService.getUserById(userId);
     }
 }

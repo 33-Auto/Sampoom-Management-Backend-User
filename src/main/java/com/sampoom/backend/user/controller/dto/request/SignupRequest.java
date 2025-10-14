@@ -23,6 +23,6 @@ public class SignupRequest {
     private String branch;
 
     @NotBlank
-    private String name;
+    private String userName;
     private String position;
 }

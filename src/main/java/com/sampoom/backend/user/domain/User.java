@@ -32,7 +32,7 @@ public class User extends BaseTimeEntity {
     private String branch;      // 지점명
 
     @Column(nullable = false, length = 50)
-    private String name;        // 사용자 이름
+    private String userName;        // 사용자 이름
 
     @Column(length = 50)
     private String position;    // 사용자 직책
