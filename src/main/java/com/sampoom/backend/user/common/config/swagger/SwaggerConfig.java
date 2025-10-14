@@ -16,7 +16,7 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("삼삼오토")
+                        .title("삼품관리-User API")
                         .description("삼삼오토 REST API Document")
                         .version("1.0.0"))
                 .addServersItem(server);
