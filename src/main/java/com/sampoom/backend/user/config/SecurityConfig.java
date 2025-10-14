@@ -20,7 +20,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         // CodeQL [java/spring-disabled-csrf-protection]: This is a stateless JWT API, CSRF protection is unnecessary.
         http    // JWT 는 CSRF 보호가 필요없음
-                .csrf(csrf -> csrf.disable()) // H2 콘솔 테스트용 비활성화
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/user/signup",
@@ -49,6 +49,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // 비밀번호 암호화
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

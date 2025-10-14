@@ -19,8 +19,6 @@ public class UserResponse {
     private String email;     // 이메일 (아이디)
     private String name;      // 사용자 이름
     private String role;      // 권한 (e.g. ROLE_USER, ROLE_ADMIN)
-
-    @JsonIgnore               // 임시로 직렬화 제외
     private String password;
 }
 
