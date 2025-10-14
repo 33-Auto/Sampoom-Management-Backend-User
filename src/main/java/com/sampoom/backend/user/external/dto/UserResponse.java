@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
-    private Long id;          // 사용자 ID
+    private Long userId;          // 사용자 ID
     private String email;     // 이메일 (아이디)
     private String userName;  // 사용자 이름
     private String role;      // 권한 (e.g. ROLE_USER, ROLE_ADMIN)

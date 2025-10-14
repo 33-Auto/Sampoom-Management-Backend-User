@@ -25,12 +25,12 @@ public class UserController {
         SignupResponse resp = userService.signup(req);
         return ApiResponse.success(SuccessStatus.CREATED, resp);
     }
-    @PatchMapping("/update/{id}")
+    @PatchMapping("/update/{userId}")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(
-            @PathVariable Long id,
+            @PathVariable Long userId,
             @RequestBody UserUpdateRequest reqs
     ) {
-        UserUpdateResponse resp = userService.updatePartialUser(id,reqs );
+        UserUpdateResponse resp = userService.updatePartialUser(userId,reqs);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 

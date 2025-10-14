@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class UserUpdateResponse {
-    private Long id;
+    private Long userId;
     private String email;
     private String userName;
     private String position;
@@ -16,7 +16,7 @@ public class UserUpdateResponse {
 
     public static UserUpdateResponse from(User user) {
         return UserUpdateResponse.builder()
-                .id(user.getId())
+                .userId(user.getId())
                 .email(user.getEmail())
                 .userName(user.getUserName())
                 .position(user.getPosition())

@@ -46,9 +46,9 @@ public class UserService {
     }
 
     @Transactional
-    public UserUpdateResponse updatePartialUser(Long id, UserUpdateRequest req) {
+    public UserUpdateResponse updatePartialUser(Long userId, UserUpdateRequest req) {
         // Repository 사용해서 DB에서 엔티티 조회
-        User user = userRepository.findById(id)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
 
         // null 아닌 필드만 수정 (Dirty Checking 사용)
@@ -75,7 +75,7 @@ public class UserService {
                 .orElseThrow(()->new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다."));
 
         return UserResponse.builder()
-                .id(user.getId())
+                .userId(user.getId())
                 .email(user.getEmail())
                 .userName(user.getUserName())
                 .role(user.getRole())
