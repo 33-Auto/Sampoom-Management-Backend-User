@@ -34,13 +34,15 @@ jobs:
             perl -pi -e 's/\r\n/\n/g' Dockerfile
           fi
 
-      - name: Create application.properties from secret
+      - name: Create application.yml from secret
         run: |
           mkdir -p src/main/resources
-          echo "${{ secrets.APP_PROPS_USER }}" > src/main/resources/application.yml
+          printf "%s" "${{ secrets.APP_PROPS_USER }}" > src/main/resources/application.yml
+
+
 
       - name: Build user jar
-        run: ./gradlew clean bootJar -x test -Dspring.profiles.active=ci
+        run: ./gradlew clean bootJar -Dspring.profiles.active=ci
 
       # Gradle의 version 값을 읽어옴 (예: 1.0.0 또는 1.0.0-SNAPSHOT)
       - name: Read version from Gradle

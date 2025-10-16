@@ -4,11 +4,11 @@ import com.sampoom.backend.user.common.response.ErrorStatus;
 import org.springframework.http.HttpStatus;
 
 public class NotFoundException extends BaseException {
-  public NotFoundException() {
+    public NotFoundException() {
     super(HttpStatus.NOT_FOUND);
   }
 
-  public NotFoundException(String message) {
+    public NotFoundException(String message) {
     super(HttpStatus.NOT_FOUND, message);
   }
 

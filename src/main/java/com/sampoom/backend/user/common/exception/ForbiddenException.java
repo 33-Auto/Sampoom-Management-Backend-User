@@ -4,15 +4,15 @@ import com.sampoom.backend.user.common.response.ErrorStatus;
 import org.springframework.http.HttpStatus;
 
 public class ForbiddenException extends BaseException {
-  public ForbiddenException() {
+    public ForbiddenException() {
     super(HttpStatus.FORBIDDEN);
   }
 
-  public ForbiddenException(String message) {
+    public ForbiddenException(String message) {
     super(HttpStatus.FORBIDDEN, message);
   }
 
-  public ForbiddenException(ErrorStatus errorStatus) {
-      super(errorStatus.getHttpStatus(), errorStatus.getMessage(), errorStatus.getCode());
-  }
+    public ForbiddenException(ErrorStatus errorStatus) {
+        super(errorStatus.getHttpStatus(), errorStatus.getMessage(), errorStatus.getCode());
+    }
 }

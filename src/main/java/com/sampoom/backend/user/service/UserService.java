@@ -1,6 +1,5 @@
 package com.sampoom.backend.user.service;
 
-import com.sampoom.backend.user.common.exception.BaseException;
 import com.sampoom.backend.user.common.exception.ConflictException;
 import com.sampoom.backend.user.common.exception.NotFoundException;
 import com.sampoom.backend.user.common.exception.UnauthorizedException;
@@ -13,9 +12,7 @@ import com.sampoom.backend.user.controller.dto.response.UserUpdateResponse;
 import com.sampoom.backend.user.domain.User;
 import com.sampoom.backend.user.external.dto.UserResponse;
 import com.sampoom.backend.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,10 +26,6 @@ public class UserService {
 
     @Transactional
     public SignupResponse signup(SignupRequest req) {
-        if (userRepository.existsByEmail(req.getEmail())) {
-            throw new ConflictException(ErrorStatus.USER_EMAIL_DUPLICATED);
-        }
-
         User user = User.builder()
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
@@ -42,11 +35,16 @@ public class UserService {
                 .position(req.getPosition())
                 .build(); // 자동 ROLE_USER, createdAt/updatedAt
 
-        User saved = userRepository.save(user);
+        User saved;
+        try {
+            saved = userRepository.save(user);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new ConflictException(ErrorStatus.USER_EMAIL_DUPLICATED);
+        }
 
         return SignupResponse.builder()
                 .userId(saved.getId())
-                .username(saved.getUserName())
+                .userName(saved.getUserName())
                 .email(saved.getEmail())
                 .build();
     }

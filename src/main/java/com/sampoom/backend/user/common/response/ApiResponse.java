@@ -56,6 +56,7 @@ public class ApiResponse<T> {
     public static ApiResponse<Void> errorWithCode(int code, String message) {
         return ApiResponse.<Void>builder()
                 .code(code)
+                .success(false)
                 .message(message)
                 .build();
     }

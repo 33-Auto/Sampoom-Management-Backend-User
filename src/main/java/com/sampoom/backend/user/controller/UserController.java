@@ -27,7 +27,7 @@ public class UserController {
         SignupResponse resp = userService.signup(req);
         return ApiResponse.success(SuccessStatus.CREATED, resp);
     }
-    @PatchMapping("/update/{userId}")
+    @PatchMapping("/update")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs

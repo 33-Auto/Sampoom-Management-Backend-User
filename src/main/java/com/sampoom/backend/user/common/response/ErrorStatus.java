@@ -10,9 +10,12 @@ import org.springframework.http.HttpStatus;
 public enum ErrorStatus {
 
     // 400 BAD_REQUEST
+    SHORT_SECRET_KEY(HttpStatus.BAD_REQUEST, "서버에서 받은 서명용 비밀키의 길이가 짧습니다. 적어도 32바이트 이상으로 설정하세요", 10408),
+    TOKEN_NULL_BLANK(HttpStatus.BAD_REQUEST, "토큰값은 Null이거나 공백이면 안됩니다.",10407),
 
     // 401 UNAUTHORIZED
     USER_PASSWORD_INVALID(HttpStatus.UNAUTHORIZED, "유효하지 않은 비밀번호입니다.",10402),
+    TOKEN_TYPE_INVALID(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 타입입니다.",10406),
 
     // 403 FORBIDDEN
 
