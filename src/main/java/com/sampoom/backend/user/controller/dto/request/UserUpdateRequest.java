@@ -1,0 +1,15 @@
+package com.sampoom.backend.user.controller.dto.request;
+
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserUpdateRequest {
+    private String userName;
+    private String position;
+    private String workspace;
+    private String branch;
+}

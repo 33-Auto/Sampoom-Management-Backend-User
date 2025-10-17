@@ -1,4 +1,4 @@
-package com.sampoom.backend.common.exception;
+package com.sampoom.backend.user.common.exception;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 public class BaseException extends RuntimeException {
     HttpStatus statusCode;
     String responseMessage;
+    int errorCode;
 
     public BaseException(HttpStatus statusCode) {
         super();
@@ -20,6 +21,13 @@ public class BaseException extends RuntimeException {
         super(responseMessage);
         this.statusCode = statusCode;
         this.responseMessage = responseMessage;
+    }
+
+    public BaseException(HttpStatus statusCode, String responseMessage, int errorCode) {
+        super(responseMessage);
+        this.statusCode = statusCode;
+        this.responseMessage = responseMessage;
+        this.errorCode = errorCode;
     }
 
     public int getStatusCode() {
