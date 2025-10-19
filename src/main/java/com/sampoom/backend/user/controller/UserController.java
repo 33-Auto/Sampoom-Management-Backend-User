@@ -38,9 +38,9 @@ public class UserController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse<UserResponse>> verifyLogin(@RequestBody VerifyLoginRequest req) {
+    public ApiResponse<UserResponse> verifyLogin(@RequestBody VerifyLoginRequest req) {
         UserResponse resp = userService.verifyLogin(req);
-        return ApiResponse.success(SuccessStatus.OK, resp);
+        return ApiResponse.success_msa(SuccessStatus.OK,resp);
     }
 
 }
