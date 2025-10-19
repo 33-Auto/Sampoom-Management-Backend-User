@@ -37,6 +37,16 @@ public class ApiResponse<T> {
         return ResponseEntity.status(status.getStatusCode()).body(response);
     }
 
+    // MSA 간 통신용 ApiResponse
+    public static <T> ApiResponse<T> success_msa(SuccessStatus status, T data) {
+        return ApiResponse.<T>builder()
+                .status(status.getStatusCode())
+                .success(true)
+                .message(status.getMessage())
+                .data(data)
+                .build();
+    }
+
     public static ApiResponse<Void> fail_only(ErrorStatus status) {
         return ApiResponse.<Void>builder()
                 .status(status.getStatusCode())
