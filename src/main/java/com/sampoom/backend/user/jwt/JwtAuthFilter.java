@@ -27,14 +27,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String accessToken = resolveAccessToken(request);
 
-        String auth = request.getHeader("Authorization");
-        if (auth != null && auth.startsWith("Bearer ")) {
-            String token = auth.substring(7);
+        if (accessToken != null) {
+            if (accessToken.startsWith("Bearer ")) {
+                accessToken = accessToken.substring(7);
+            }
             try {
-                Claims claims = jwtProvider.parse(token);
+                Claims claims = jwtProvider.parse(accessToken);
                 // 토큰 타입 검증
                 String type = claims.get("type", String.class);
                 if ("refresh".equals(type)) {
@@ -44,24 +47,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // 토큰에서 userId, role 가져오기
                 String userId = claims.getSubject();
                 String role = claims.get("role", String.class);
-                if (userId == null || role == null) {
-                    log.warn("토큰에 필수 정보가 누락되었습니다. userId: {}, role: {}", userId, role);
-                    chain.doFilter(request, response);
+                if (userId == null|| userId.isBlank() || role == null || role.isBlank()) {
+                    filterChain.doFilter(request, response);
                     return;
                 }
-                // ROLE 누락되면 달아주기
+                // Spring Security는 ROLE_ 접두사를 기대함
+                // 접두사가 없으면 붙여주고, 있으면 그대로 둔다.
                 String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
 
-                var authToken = new UsernamePasswordAuthenticationToken(
-                        userId, null,  List.of(() -> authority));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userId, null, List.of(() -> authority)
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
                 // 토큰 검증 실패 시 SecurityContext 비움
                 SecurityContextHolder.clearContext();
                 throw e;
             }
         }
-        chain.doFilter(request, response);
+        filterChain.doFilter(request, response);
     }
 
     private String resolveAccessToken(HttpServletRequest request) {

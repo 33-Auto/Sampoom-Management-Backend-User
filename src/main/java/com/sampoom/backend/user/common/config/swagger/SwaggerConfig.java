@@ -21,6 +21,12 @@ public class SwaggerConfig {
                 .scheme("bearer")
                 .bearerFormat("JWT")
                 .name("Authorization");
+
+        SecurityScheme cookieAuth = new SecurityScheme()
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.COOKIE)
+                .name("ACCESS_TOKEN");
+
         Server localServer = new Server()
                 .url("http://localhost:8080/api/user")
                 .description("로컬 서버");
@@ -29,14 +35,19 @@ public class SwaggerConfig {
                 .url("https://sampoom.store/api/user")
                 .description("배포 서버");
 
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
+        SecurityRequirement securityRequirement = new SecurityRequirement()
+                .addList("cookieAuth")
+                .addList("bearerAuth");
 
         return new OpenAPI()
                 .info(new Info()
                         .title("삼삼오토 User Service API")
                         .description("User 서비스 REST API 문서")
                         .version("1.0.0"))
-                .components(new Components().addSecuritySchemes("bearerAuth", bearerAuth))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", bearerAuth)
+                        .addSecuritySchemes("cookieAuth", cookieAuth)
+                )
                 .addSecurityItem(securityRequirement)
                 .servers(List.of(localServer, prodServer));
     }
