@@ -48,6 +48,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String userId = claims.getSubject();
                 String role = claims.get("role", String.class);
                 if (userId == null|| userId.isBlank() || role == null || role.isBlank()) {
+                    log.warn("토큰 필요 필드가 누락되었습니다. userId: {}, role: {}", userId, role);
                     filterChain.doFilter(request, response);
                     return;
                 }
@@ -77,12 +78,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         }
-
-        // Swagger / 테스트용 헤더 지원
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
-        }
-        return null;
+        // Bearer 방식일 때
+        return request.getHeader("Authorization");
     }
 }
