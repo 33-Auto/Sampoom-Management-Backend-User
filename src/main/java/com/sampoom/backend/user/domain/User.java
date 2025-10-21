@@ -37,6 +37,8 @@ public class User extends BaseTimeEntity {
     @Column(length = 50)
     private String position;    // 사용자 직책
 
+    @Column
+
     // role 기본값 설정
     @PrePersist
     public void prePersist() {
