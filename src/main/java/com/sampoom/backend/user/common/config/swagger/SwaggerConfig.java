@@ -25,7 +25,8 @@ public class SwaggerConfig {
         SecurityScheme cookieAuth = new SecurityScheme()
                 .type(SecurityScheme.Type.APIKEY)
                 .in(SecurityScheme.In.COOKIE)
-                .name("ACCESS_TOKEN");
+                .name("ACCESS_TOKEN")
+                .description("브라우저에서 자동 주입, 입력 필요 없음");
 
         Server localServer = new Server()
                 .url("http://localhost:8080")
@@ -35,10 +36,10 @@ public class SwaggerConfig {
                 .url("https://sampoom.store/api/user")
                 .description("배포 서버");
 
-        SecurityRequirement cookieAuthRequirement = new SecurityRequirement()
-                .addList("cookieAuth");
         SecurityRequirement bearerAuthRequirement = new SecurityRequirement()
                 .addList("bearerAuth");
+        SecurityRequirement cookieAuthRequirement = new SecurityRequirement()
+                .addList("cookieAuth");
 
         return new OpenAPI()
                 .info(new Info()
@@ -49,8 +50,8 @@ public class SwaggerConfig {
                         .addSecuritySchemes("bearerAuth", bearerAuth)
                         .addSecuritySchemes("cookieAuth", cookieAuth)
                 )
-                .addSecurityItem(cookieAuthRequirement)
                 .addSecurityItem(bearerAuthRequirement)
+                .addSecurityItem(cookieAuthRequirement)
                 .servers(List.of(localServer, prodServer));
     }
 }
