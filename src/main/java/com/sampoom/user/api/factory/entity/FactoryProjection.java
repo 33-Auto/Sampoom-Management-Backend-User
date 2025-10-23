@@ -52,7 +52,7 @@ public class FactoryProjection {
     private OffsetDateTime sourceUpdatedAt;  // 원본 updatedAt
 
     @Column(nullable=false)
-    private OffsetDateTime updatedAt;        // 프로젝션 갱신 시각
+    private OffsetDateTime updatedAt ;        // 프로젝션 갱신 시각
 
     public FactoryProjection updateFromEvent(FactoryEvent e) {
         FactoryEvent.Payload p = e.getPayload();
