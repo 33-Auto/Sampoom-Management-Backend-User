@@ -1,7 +1,6 @@
 package com.sampoom.user.api.factory.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sampoom.user.api.factory.respository.FactoryProjectionRepository;
 import com.sampoom.user.api.factory.service.FactoryProjectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

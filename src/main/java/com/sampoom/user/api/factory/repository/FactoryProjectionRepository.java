@@ -1,4 +1,4 @@
-package com.sampoom.user.api.factory.respository;
+package com.sampoom.user.api.factory.repository;
 
 import com.sampoom.user.api.factory.entity.FactoryProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
