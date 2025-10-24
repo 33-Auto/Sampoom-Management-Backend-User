@@ -3,10 +3,12 @@ package com.sampoom.user.api.agency.service;
 import com.sampoom.user.api.agency.entity.AgencyProjection;
 import com.sampoom.user.api.agency.event.AgencyEvent;
 import com.sampoom.user.api.agency.repository.AgencyProjectionRepository;
+import com.sampoom.user.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
 @Component
@@ -16,6 +18,7 @@ public class AgencyProjectionUpdater {
     private final AgencyProjectionRepository agencyProjectionRepository;
 
     public void upsert(AgencyProjection existing, AgencyEvent event) {
+        validateEvent(event);
         var p = event.getPayload();
         var now = OffsetDateTime.now();
 
@@ -57,5 +60,14 @@ public class AgencyProjectionUpdater {
                 .updatedAt(now)
                 .build();
         agencyProjectionRepository.save(next);
+    }
+
+    private void validateEvent(AgencyEvent event) {
+        try {
+            UUID.fromString(event.getEventId());
+            OffsetDateTime.parse(event.getOccurredAt());
+        } catch (IllegalArgumentException | DateTimeParseException e) {
+            throw new IllegalArgumentException(ErrorStatus.INVALID_EVENT_FORMAT.getMessage(), e);
+        }
     }
 }

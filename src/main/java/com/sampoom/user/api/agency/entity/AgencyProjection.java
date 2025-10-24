@@ -43,7 +43,7 @@ public class AgencyProjection {
     @Column(nullable = false)
     private Long version;
 
-    @Column(name = "last_event_id", columnDefinition = "uuid")
+    @Column(name = "last_event_id")
     private UUID lastEventId;
 
     @Column(nullable = false)
