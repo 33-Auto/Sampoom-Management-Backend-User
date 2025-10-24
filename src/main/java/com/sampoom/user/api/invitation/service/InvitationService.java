@@ -6,10 +6,10 @@ import com.sampoom.user.api.invitation.entity.Invitation;
 import com.sampoom.user.api.invitation.entity.InvitationStatus;
 import com.sampoom.user.api.invitation.repository.InvitationRepository;
 import com.sampoom.user.api.invitation.util.InvitationUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +49,8 @@ public class InvitationService {
 
 
         return new InvitationCreateResponseDto(code);
-    }}
+    }
+}
 
 //    /**
 //     * 회원가입 직후 호출하는 "자동 매칭"용 (inviteCode 없을 때)

@@ -1,7 +1,10 @@
 package com.sampoom.user.api.invitation.util;
 
+import com.sampoom.user.common.exception.BadRequestException;
+import com.sampoom.user.common.response.ErrorStatus;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.HexFormat;
 
@@ -10,10 +13,21 @@ public final class InvitationUtils {
     private InvitationUtils(){}
 
     public static String emailHash(String email, String salt) {
+        // 입력 검증: 프로젝트 공통 예외 및 에러 상태 사용
+        if (email == null)
+            throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
+        if (salt == null)
+            throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
+        if (email.isBlank())
+            throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
+        if (salt.isBlank())
+            throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update((email.trim().toLowerCase() + "|" + salt).getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(md.digest());
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(salt.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            String normalized = email.trim().toLowerCase();
+            byte[] digest = mac.doFinal(normalized.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
         } catch (Exception e) {
             throw new IllegalStateException("Hash error", e);
         }

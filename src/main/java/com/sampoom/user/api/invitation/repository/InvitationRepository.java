@@ -1,8 +1,8 @@
 package com.sampoom.user.api.invitation.repository;
 
 import com.sampoom.user.api.invitation.entity.Invitation;
+import com.sampoom.user.api.invitation.entity.InvitationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -12,13 +12,10 @@ public interface InvitationRepository extends JpaRepository<Invitation, Long> {
 
     Optional<Invitation> findByInviteCode(String inviteCode);
 
-    @Query("""
-        select i from Invitation i
-        where i.emailHash = :emailHash
-          and i.status = com.sampoom.user.api.invitation.entity.InvitationStatus.PENDING
-        order by i.id asc
-    """)
-    Optional<Invitation> findFirstPendingByEmailHash(String emailHash);
+    Optional<Invitation> findTopByEmailHashAndStatusOrderByIdAsc(
+            String emailHash,
+            InvitationStatus status
+    );
 
     boolean existsByInviteCode(String inviteCode);
 }
