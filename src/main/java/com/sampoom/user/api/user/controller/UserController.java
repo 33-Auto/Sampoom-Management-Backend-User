@@ -27,6 +27,8 @@ public class UserController {
         SignupResponse resp = userService.signup(req);
         return ApiResponse.success(SuccessStatus.CREATED, resp);
     }
+
+    // 회원 수정
     @PatchMapping("/update")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(
             Authentication authentication,
