@@ -28,6 +28,20 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.CREATED, resp);
     }
 
+    @PostMapping("/internal/create-profile")
+    public ApiResponse<Void> createProfile(@RequestBody UserProfileRequest req) {
+        User user = User.builder()
+                .id(req.getUserId()) // AuthUser.id 재사용
+                .userName(req.getUserName())
+                .branch(req.getBranch())
+                .workspace(req.getWorkspace())
+                .position(req.getPosition())
+                .build();
+        userRepository.save(user);
+        return ApiResponse.success_only(SuccessStatus.CREATED);
+    }
+
+
     // 회원 수정
     @PatchMapping("/update")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(

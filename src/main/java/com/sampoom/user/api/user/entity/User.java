@@ -15,13 +15,6 @@ public class User extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
-
-    @Column(nullable = false)
-    private String password;
-
     @Column(nullable = false, length = 20)
     private String role;   // ROLE_USER, ROLE_ADMIN 등 스프링 시큐리티 기본 role
 
