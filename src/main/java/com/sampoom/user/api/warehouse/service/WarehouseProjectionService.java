@@ -25,7 +25,7 @@ public class WarehouseProjectionService {
                     .address(eventDto.getAddress())
                     .status(eventDto.getStatus())
                     .version(eventDto.getVersion())
-                    .sourceUpdatedAt(OffsetDateTime.now())
+                    .sourceUpdatedAt(eventDto.getSourceUpdateAt())
                     .updatedAt(OffsetDateTime.now())
                     .build();
         } else {
