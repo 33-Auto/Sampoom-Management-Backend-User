@@ -1,6 +1,5 @@
 package com.sampoom.user.api.warehouse.entity;
 
-import com.sampoom.user.api.factory.entity.FactoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
