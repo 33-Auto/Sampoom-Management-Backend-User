@@ -49,8 +49,6 @@ dependencies {
 
     // Kafka
     implementation 'org.springframework.kafka:spring-kafka'
-
-
 }
 
 tasks.named('test') {

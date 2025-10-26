@@ -28,6 +28,8 @@ public enum ErrorStatus {
     USER_EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 유저의 이메일입니다.", 10400),
 
     // 500 INTERNAL_SERVER_ERROR
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", 10500),
+    INVALID_EVENT_FORMAT(HttpStatus.INTERNAL_SERVER_ERROR, "이벤트 형식이 유효하지 않습니다.", 10501),
 
     ;
     private final HttpStatus httpStatus;
