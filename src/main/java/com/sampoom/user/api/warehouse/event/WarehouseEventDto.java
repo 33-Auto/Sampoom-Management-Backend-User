@@ -16,5 +16,5 @@ public class WarehouseEventDto {
     private String address;
     private WarehouseStatus status;
     private Long version;
-    private OffsetDateTime sourceUpdateAt;
+    private OffsetDateTime sourceUpdatedAt;
 }
