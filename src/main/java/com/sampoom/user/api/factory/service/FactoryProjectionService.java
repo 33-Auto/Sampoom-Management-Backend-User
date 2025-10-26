@@ -3,7 +3,7 @@ package com.sampoom.user.api.factory.service;
 import com.sampoom.user.api.factory.entity.FactoryProjection;
 import com.sampoom.user.api.factory.entity.FactoryStatus;
 import com.sampoom.user.api.factory.event.FactoryEvent;
-import com.sampoom.user.api.factory.respository.FactoryProjectionRepository;
+import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -32,7 +32,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**").permitAll()
+                                "/webjars/**",
+                                "/invitations").permitAll()
                         .anyRequest().authenticated()//
                 )
                 // 기본 폼 로그인 비활성화
