@@ -34,10 +34,10 @@ jobs:
             perl -pi -e 's/\r\n/\n/g' Dockerfile
           fi
 
-      - name: Create application.yml from secret
+      - name: Create application.properties from secret
         run: |
           mkdir -p src/main/resources
-          printf "%s" "${{ secrets.APP_PROPS_USER }}" > src/main/resources/application.yml
+          printf "%s" "${{ secrets.APP_PROPS_USER }}" > src/main/resources/application.properties
 
 
 
