@@ -19,7 +19,7 @@ public class UserController {
 
     private final UserService userService;
 
-    // Auth 호출용(Feign)
+    // Auth 통신용(Feign)
     @Hidden
     @PostMapping("/profile")
     public ResponseEntity<ApiResponse<Void>> createProfile(@RequestBody UserProfile req) {
