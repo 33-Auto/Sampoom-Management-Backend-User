@@ -12,6 +12,7 @@ public enum ErrorStatus {
     // 400 BAD_REQUEST
     SHORT_SECRET_KEY(HttpStatus.BAD_REQUEST, "서버에서 받은 서명용 비밀키의 길이가 짧습니다. 적어도 32바이트 이상으로 설정하세요", 10408),
     TOKEN_NULL_BLANK(HttpStatus.BAD_REQUEST, "토큰값은 Null이거나 공백이면 안됩니다.",10407),
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.",10404),
 
     // 401 UNAUTHORIZED
     USER_PASSWORD_INVALID(HttpStatus.UNAUTHORIZED, "유효하지 않은 비밀번호입니다.",10402),
@@ -27,6 +28,8 @@ public enum ErrorStatus {
     USER_EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 유저의 이메일입니다.", 10400),
 
     // 500 INTERNAL_SERVER_ERROR
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", 10500),
+    INVALID_EVENT_FORMAT(HttpStatus.INTERNAL_SERVER_ERROR, "이벤트 형식이 유효하지 않습니다.", 10501),
 
     ;
     private final HttpStatus httpStatus;
