@@ -4,6 +4,7 @@ import com.sampoom.user.common.jwt.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,9 +26,9 @@ public class SecurityConfig {
                 // CodeQL [java/spring-disabled-csrf-protection]: suppress - Stateless JWT API라 CSRF 불필요
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Feign용 POST만 허용
+                        .requestMatchers(HttpMethod.POST, "/profile").permitAll()
                         .requestMatchers(
-                                "/signup",
-                                "/verify",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
@@ -49,7 +50,7 @@ public class SecurityConfig {
                             ,"http://localhost:3000"
                     ));
                     corsConfig.setAllowCredentials(true);
-                    corsConfig.setExposedHeaders(List.of("Set-Cookie", "Authorization"));
+                    corsConfig.setExposedHeaders(List.of("Authorization"));
                     corsConfig.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Client-Type"));
                     return corsConfig;
                 }))
@@ -59,13 +60,6 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("""
-                    {
-                        "success": false,
-                        "code": 10406,
-                        "message": "유효하지 않은 토큰 타입입니다."
-                    }
-                    """);
                         })
                 );
         return http.build();

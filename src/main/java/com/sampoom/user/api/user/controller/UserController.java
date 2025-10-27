@@ -1,16 +1,13 @@
 package com.sampoom.user.api.user.controller;
 
 
+import com.sampoom.user.api.user.internal.dto.UserProfile;
 import com.sampoom.user.common.response.ApiResponse;
 import com.sampoom.user.common.response.SuccessStatus;
-import com.sampoom.user.api.user.dto.request.SignupRequest;
 import com.sampoom.user.api.user.dto.request.UserUpdateRequest;
-import com.sampoom.user.api.user.dto.request.VerifyLoginRequest;
 import com.sampoom.user.api.user.dto.response.UserUpdateResponse;
-import com.sampoom.user.api.user.external.dto.UserResponse;
-import com.sampoom.user.api.user.dto.response.SignupResponse;
 import com.sampoom.user.api.user.service.UserService;
-import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,28 +19,25 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest req) {
-        SignupResponse resp = userService.signup(req);
-        return ApiResponse.success(SuccessStatus.CREATED, resp);
-    }
-
-    @PostMapping("/internal/create-profile")
-    public ApiResponse<Void> createProfile(@RequestBody UserProfileRequest req) {
-        User user = User.builder()
-                .id(req.getUserId()) // AuthUser.id 재사용
-                .userName(req.getUserName())
-                .branch(req.getBranch())
-                .workspace(req.getWorkspace())
-                .position(req.getPosition())
-                .build();
-        userRepository.save(user);
+    // Auth 호출용(Feign)
+    @Hidden
+    @PostMapping("/profile")
+    public ResponseEntity<ApiResponse<Void>> createProfile(@RequestBody UserProfile req) {
+        userService.createProfile(req);
         return ApiResponse.success_only(SuccessStatus.CREATED);
     }
 
+    // AccessToken 내 userId로 profile 조회
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<UserProfile>> getProfile(Authentication authentication){
+        Long userId = Long.valueOf(authentication.getName());
+        UserProfile profile = userService.getProfile(userId);
+        return ApiResponse.success(SuccessStatus.OK, profile);
+
+    }
 
     // 회원 수정
-    @PatchMapping("/update")
+    @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs
@@ -51,12 +45,6 @@ public class UserController {
         Long userId = Long.valueOf(authentication.getName()); // Access Token에서 추출됨
         UserUpdateResponse resp = userService.updatePartialUser(userId,reqs);
         return ApiResponse.success(SuccessStatus.OK, resp);
-    }
-
-    @PostMapping("/verify")
-    public ApiResponse<UserResponse> verifyLogin(@RequestBody VerifyLoginRequest req) {
-        UserResponse resp = userService.verifyLogin(req);
-        return ApiResponse.success_msa(SuccessStatus.OK,resp);
     }
 
 }
