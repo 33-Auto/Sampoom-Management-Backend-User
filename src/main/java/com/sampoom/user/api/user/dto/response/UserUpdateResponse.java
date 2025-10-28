@@ -8,7 +8,6 @@ import lombok.Getter;
 @Builder
 public class UserUpdateResponse {
     private Long userId;
-    private String email;
     private String userName;
     private String position;
     private String workspace;
@@ -17,7 +16,6 @@ public class UserUpdateResponse {
     public static UserUpdateResponse from(User user) {
         return UserUpdateResponse.builder()
                 .userId(user.getId())
-                .email(user.getEmail())
                 .userName(user.getUserName())
                 .position(user.getPosition())
                 .workspace(user.getWorkspace())

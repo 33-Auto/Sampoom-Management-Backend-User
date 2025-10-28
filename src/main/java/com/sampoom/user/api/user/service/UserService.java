@@ -1,19 +1,14 @@
 package com.sampoom.user.api.user.service;
 
+import com.sampoom.user.api.user.internal.dto.AuthUserProfile;
 import com.sampoom.user.common.exception.ConflictException;
 import com.sampoom.user.common.exception.NotFoundException;
-import com.sampoom.user.common.exception.UnauthorizedException;
 import com.sampoom.user.common.response.ErrorStatus;
-import com.sampoom.user.api.user.dto.request.SignupRequest;
 import com.sampoom.user.api.user.dto.request.UserUpdateRequest;
-import com.sampoom.user.api.user.dto.request.VerifyLoginRequest;
-import com.sampoom.user.api.user.dto.response.SignupResponse;
 import com.sampoom.user.api.user.dto.response.UserUpdateResponse;
 import com.sampoom.user.api.user.entity.User;
-import com.sampoom.user.api.user.external.dto.UserResponse;
 import com.sampoom.user.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,30 +17,37 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public SignupResponse signup(SignupRequest req) {
-        User user = User.builder()
-                .email(req.getEmail())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .workspace(req.getWorkspace())
-                .branch(req.getBranch())
-                .userName(req.getUserName())
-                .position(req.getPosition())
-                .build(); // 자동 ROLE_USER, createdAt/updatedAt
-
-        User saved;
-        try {
-            saved = userRepository.save(user);
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            throw new ConflictException(ErrorStatus.USER_EMAIL_DUPLICATED);
+    public void createProfile(AuthUserProfile req) {
+        // userId로 이미 생성된 회원 여부 확인
+        if (userRepository.findById(req.getUserId()).isPresent()) {
+            throw new ConflictException(ErrorStatus.USER_ID_DUPLICATED);
         }
 
-        return SignupResponse.builder()
-                .userId(saved.getId())
-                .userName(saved.getUserName())
-                .email(saved.getEmail())
+        User user = User.builder()
+                .id(req.getUserId())
+                .userName(req.getUserName())
+                .workspace(req.getWorkspace())
+                .branch(req.getBranch())
+                .position(req.getPosition())
+                .build();
+
+        userRepository.save(user);
+    }
+
+
+    @Transactional(readOnly = true)
+    public AuthUserProfile getProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+
+        return AuthUserProfile.builder()
+                .userId(user.getId())
+                .userName(user.getUserName())
+                .workspace(user.getWorkspace())
+                .branch(user.getBranch())
+                .position(user.getPosition())
                 .build();
     }
 
@@ -72,22 +74,4 @@ public class UserService {
         // 반환 DTO 생성
         return UserUpdateResponse.from(user);
     }
-
-    @Transactional(readOnly = true)
-    public UserResponse verifyLogin(VerifyLoginRequest req) {
-        User user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_EMAIL_NOT_FOUND));
-
-        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException(ErrorStatus.USER_PASSWORD_INVALID);
-        }
-
-        return UserResponse.builder()
-                .userId(user.getId())
-                .email(user.getEmail())
-                .userName(user.getUserName())
-                .role(user.getRole())
-                .build();
-    }
-
 }

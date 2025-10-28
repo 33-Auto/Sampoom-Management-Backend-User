@@ -25,7 +25,7 @@ public enum ErrorStatus {
     USER_BY_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "이메일로 해당 유저를 찾을 수 없습니다.",10401),
 
     // 409 CONFLICT
-    USER_EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 유저의 이메일입니다.", 10400),
+    USER_ID_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 유저의 ID입니다.", 10409),
 
     // 500 INTERNAL_SERVER_ERROR
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", 10500),
