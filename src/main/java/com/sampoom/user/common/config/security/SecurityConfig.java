@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // Feign용 POST만 허용
-                        .requestMatchers(HttpMethod.POST, "/profile").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/internal/**").hasAuthority("SVC_AUTH")
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
