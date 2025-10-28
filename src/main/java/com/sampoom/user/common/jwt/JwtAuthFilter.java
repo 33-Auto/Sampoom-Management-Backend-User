@@ -43,6 +43,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.clearContext(); // 인증 정보 제거
                     throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
                 }
+
+                if ("service".equals(type)) {
+                    String role = claims.get("role", String.class);
+                    String subject = claims.getSubject(); // 토큰 발급자 정보 (auth-service)
+                    if (!"SVC_AUTH".equals(role)) {
+                        throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
+                    }
+
+                    // Feign 내부 호출용 권한 통과
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(subject, null, List.of(() -> role));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+
+                    // service 토큰은 더 이상 검증할 필요 없음
+                    filterChain.doFilter(request, response);
+                    return;
+                }
                 // 토큰에서 userId, role 가져오기
                 String userId = claims.getSubject();
                 String role = claims.get("role", String.class);
