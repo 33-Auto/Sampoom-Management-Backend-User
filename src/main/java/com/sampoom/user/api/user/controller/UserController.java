@@ -32,6 +32,7 @@ public class UserController {
 
     // AccessToken 내 userId로 profile 조회
     @GetMapping("/profile")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse<AuthUserProfile>> getProfile(Authentication authentication){
         try {
             String name = authentication.getName();
@@ -49,6 +50,7 @@ public class UserController {
 
     // 회원 수정
     @PatchMapping("/profile")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs
