@@ -1,7 +1,7 @@
 package com.sampoom.user.api.user.controller;
 
 
-import com.sampoom.user.api.user.internal.dto.UserProfile;
+import com.sampoom.user.api.user.internal.dto.AuthUserProfile;
 import com.sampoom.user.common.response.ApiResponse;
 import com.sampoom.user.common.response.SuccessStatus;
 import com.sampoom.user.api.user.dto.request.UserUpdateRequest;
@@ -22,16 +22,16 @@ public class UserController {
     // Auth 통신용(Feign)
     @Hidden
     @PostMapping("/profile")
-    public ResponseEntity<ApiResponse<Void>> createProfile(@RequestBody UserProfile req) {
+    public ResponseEntity<ApiResponse<Void>> createProfile(@RequestBody AuthUserProfile req) {
         userService.createProfile(req);
         return ApiResponse.success_only(SuccessStatus.CREATED);
     }
 
     // AccessToken 내 userId로 profile 조회
     @GetMapping("/profile")
-    public ResponseEntity<ApiResponse<UserProfile>> getProfile(Authentication authentication){
+    public ResponseEntity<ApiResponse<AuthUserProfile>> getProfile(Authentication authentication){
         Long userId = Long.valueOf(authentication.getName());
-        UserProfile profile = userService.getProfile(userId);
+        AuthUserProfile profile = userService.getProfile(userId);
         return ApiResponse.success(SuccessStatus.OK, profile);
 
     }

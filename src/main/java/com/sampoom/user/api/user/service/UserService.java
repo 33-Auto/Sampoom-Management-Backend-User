@@ -1,6 +1,6 @@
 package com.sampoom.user.api.user.service;
 
-import com.sampoom.user.api.user.internal.dto.UserProfile;
+import com.sampoom.user.api.user.internal.dto.AuthUserProfile;
 import com.sampoom.user.common.exception.ConflictException;
 import com.sampoom.user.common.exception.NotFoundException;
 import com.sampoom.user.common.response.ErrorStatus;
@@ -19,7 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void createProfile(UserProfile req) {
+    public void createProfile(AuthUserProfile req) {
         // userId로 이미 생성된 회원 여부 확인
         if (userRepository.findById(req.getUserId()).isPresent()) {
             throw new ConflictException(ErrorStatus.USER_ID_DUPLICATED);
@@ -38,11 +38,11 @@ public class UserService {
 
 
     @Transactional(readOnly = true)
-    public UserProfile getProfile(Long userId) {
+    public AuthUserProfile getProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
 
-        return UserProfile.builder()
+        return AuthUserProfile.builder()
                 .userId(user.getId())
                 .userName(user.getUserName())
                 .workspace(user.getWorkspace())
