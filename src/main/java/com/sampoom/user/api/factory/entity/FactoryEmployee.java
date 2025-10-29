@@ -47,9 +47,9 @@ public class FactoryEmployee extends SoftDeleteEntity {
     @Column(nullable = false)
     private Long factoryId;  // 공장 ID
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private Role role;  // 역할
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false, length = 20)
+//    private Role role;  // 역할
 
     @PrePersist
     void prePersist() {
@@ -62,9 +62,9 @@ public class FactoryEmployee extends SoftDeleteEntity {
         this.endedAt = LocalDateTime.now();
     }
 
-    public void updateRole(Role newRole) {
-        this.role = newRole;
-    }
+//    public void updateRole(Role newRole) {
+//        this.role = newRole;
+//    }
 
     public void updatePosition(Position newPosition) {
         this.position = newPosition;

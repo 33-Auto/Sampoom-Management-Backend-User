@@ -7,8 +7,6 @@ import java.util.Optional;
 
 
 public interface FactoryProjectionRepository extends JpaRepository<FactoryProjection, Long> {
-
     Optional<FactoryProjection> findByFactoryId(Long factoryId);
-
-
+    Optional<FactoryProjection> findByName(String name); // 추가
 }

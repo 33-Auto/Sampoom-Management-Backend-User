@@ -17,9 +17,9 @@ public class UserUpdateResponse {
         return UserUpdateResponse.builder()
                 .userId(user.getId())
                 .userName(user.getUserName())
-                .position(user.getPosition())
-                .workspace(user.getWorkspace())
-                .branch(user.getBranch())
+//                .position(user.getPosition())
+//                .workspace(user.getWorkspace())
+//                .branch(user.getBranch())
                 .build();
     }
 }

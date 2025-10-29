@@ -27,10 +27,10 @@ public class UserService {
 
         User user = User.builder()
                 .id(req.getUserId())
-                .userName(req.getUserName())
-                .workspace(req.getWorkspace())
-                .branch(req.getBranch())
-                .position(req.getPosition())
+//                .userName(req.getUserName())
+//                .workspace(req.getWorkspace())
+//                .branch(req.getBranch())
+//                .position(req.getPosition())
                 .build();
 
         userRepository.save(user);
@@ -44,10 +44,10 @@ public class UserService {
 
         return AuthUserProfile.builder()
                 .userId(user.getId())
-                .userName(user.getUserName())
-                .workspace(user.getWorkspace())
-                .branch(user.getBranch())
-                .position(user.getPosition())
+//                .userName(user.getUserName())
+//                .workspace(user.getWorkspace())
+//                .branch(user.getBranch())
+//                .position(user.getPosition())
                 .build();
     }
 
@@ -61,15 +61,15 @@ public class UserService {
         if (req.getUserName() != null) {
             user.setUserName(req.getUserName());
         }
-        if (req.getPosition() != null) {
-            user.setPosition(req.getPosition());
-        }
-        if (req.getWorkspace() != null) {
-            user.setWorkspace(req.getWorkspace());
-        }
-        if (req.getBranch() != null) {
-            user.setBranch(req.getBranch());
-        }
+//        if (req.getPosition() != null) {
+//            user.setPosition(req.getPosition());
+//        }
+//        if (req.getWorkspace() != null) {
+//            user.setWorkspace(req.getWorkspace());
+//        }
+//        if (req.getBranch() != null) {
+//            user.setBranch(req.getBranch());
+//        }
 
         // 반환 DTO 생성
         return UserUpdateResponse.from(user);
