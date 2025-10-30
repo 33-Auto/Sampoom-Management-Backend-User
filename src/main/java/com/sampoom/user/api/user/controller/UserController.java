@@ -1,8 +1,10 @@
 package com.sampoom.user.api.user.controller;
 
 
+import com.sampoom.user.api.user.dto.response.UserInfoListResponse;
 import com.sampoom.user.api.user.entity.User;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
+import com.sampoom.user.api.user.service.UserInfoService;
 import com.sampoom.user.common.response.ApiResponse;
 import com.sampoom.user.common.response.SuccessStatus;
 import com.sampoom.user.api.user.dto.request.UserUpdateRequest;
@@ -13,6 +15,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -24,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserInfoService userInfoService;
 
     // Auth 통신용(Feign)
     @Hidden
@@ -52,6 +58,12 @@ public class UserController {
             throw new IllegalArgumentException("토큰 내 유효하지 않은 userId 포맷", e);
         }
 
+    }
+
+    @GetMapping("/info")
+    public ResponseEntity<ApiResponse<UserInfoListResponse>> getAllUsers(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        UserInfoListResponse resp = userInfoService.getAllUsers(pageable);
+        return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
     // 회원 수정
