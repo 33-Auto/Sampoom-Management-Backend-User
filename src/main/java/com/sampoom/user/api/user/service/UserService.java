@@ -14,6 +14,7 @@ import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
 import com.sampoom.user.api.warehouse.repository.WarehouseEmployeeRepository;
 import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
 import com.sampoom.user.common.entity.Position;
+import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.exception.BadRequestException;
 import com.sampoom.user.common.exception.ConflictException;
 import com.sampoom.user.common.exception.NotFoundException;
@@ -56,8 +57,12 @@ public class UserService {
         userRepository.save(user);
 
         // Employee:
-        switch (req.getWorkspace().toUpperCase()) {
-            case "FACTORY" -> {
+        if (req.getWorkspace() == null) {
+            throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
+        }
+        Workspace workspace = Workspace.valueOf(req.getWorkspace().toUpperCase());
+        switch (workspace) {
+            case FACTORY -> {
                 FactoryProjection factory = factoryProjectionRepository.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.FACTORY_NAME_NOT_FOUND));
 
@@ -68,7 +73,7 @@ public class UserService {
                         .build());
             }
 
-            case "WAREHOUSE" -> {
+            case WAREHOUSE -> {
                 WarehouseProjection warehouse = warehouseProjectionRepository.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.WAREHOUSE_NAME_NOT_FOUND));
 
@@ -79,7 +84,7 @@ public class UserService {
                         .build());
             }
 
-            case "AGENCY" -> {
+            case AGENCY -> {
                 AgencyProjection agency = agencyProjectionRepository.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.AGENCY_NAME_NOT_FOUND));
 

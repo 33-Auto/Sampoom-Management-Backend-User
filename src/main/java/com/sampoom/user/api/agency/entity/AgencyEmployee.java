@@ -18,7 +18,7 @@ import static com.sampoom.user.common.entity.EmployeeStatus.ACTIVE;
 @Builder
 @SQLDelete(sql = "UPDATE agency_employee SET deleted = true, updated_at = now() WHERE agency_employee_id = ?")
 @SQLRestriction("deleted = false")
-public class AgencyEmployee extends BaseTimeEntity {
+public class AgencyEmployee extends SoftDeleteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

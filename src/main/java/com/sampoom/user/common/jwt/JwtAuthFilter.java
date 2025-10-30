@@ -69,13 +69,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 // 토큰에서 userId, role 가져오기
                 String userId = claims.getSubject();
-                Role role = claims.get("role", Role.class);
-                if (userId == null|| userId.isBlank() || role == null ) {
-                    log.warn("토큰 필요 필드가 누락되었습니다. userId: {}, role: {}", userId, role);
+                String roleClaim = claims.get("role", String.class);
+                if (userId == null || userId.isBlank() || roleClaim == null || roleClaim.isBlank()) {
+                    log.warn("토큰 필요 필드가 누락되었습니다. userId: {}, role: {}", userId, roleClaim);
                     SecurityContextHolder.clearContext();
                     filterChain.doFilter(request, response);
                     return;
                 }
+                Role role;
+                    try {
+                        role = Role.valueOf(roleClaim);
+                    } catch (IllegalArgumentException ex) {
+                        throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
+                    }
 
                 // 권한 매핑 (Enum Role → Security 권한명)
                 String authority;

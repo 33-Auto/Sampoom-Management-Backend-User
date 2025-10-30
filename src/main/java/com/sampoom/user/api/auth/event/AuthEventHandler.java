@@ -38,6 +38,7 @@ public class AuthEventHandler {
                             .build());
 
             authUserProjectionRepository.save(projection);
+            ack.acknowledge();
         } catch (Exception e) {
             log.error("[AuthUserEventHandler] failed", e);
             throw new RuntimeException(e);

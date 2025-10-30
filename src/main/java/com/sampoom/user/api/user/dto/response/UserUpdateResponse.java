@@ -10,9 +10,6 @@ import lombok.Getter;
 public class UserUpdateResponse {
     private Long userId;
     private String userName;
-    private Position position;
-    private String workspace;
-    private String branch;
 
     public static UserUpdateResponse from(User user) {
         return UserUpdateResponse.builder()
