@@ -53,6 +53,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 if ("service".equals(type)) {
                     String role = claims.get("role", String.class);
                     String subject = claims.getSubject(); // 토큰 발급자 정보 (auth-service)
+                    if (role == null || role.isBlank()) {
+                        log.warn("서비스 토큰 필수 필드 누락. subject: {}, role: {}", subject, role);
+                        throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
+                        }
                     if (!role.startsWith("SVC_")) {
                         throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
                     }

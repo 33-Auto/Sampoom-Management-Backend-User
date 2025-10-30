@@ -60,7 +60,13 @@ public class UserService {
         if (req.getWorkspace() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
-        Workspace workspace = Workspace.valueOf(req.getWorkspace().toUpperCase());
+
+        Workspace workspace;
+        try {
+            workspace = Workspace.valueOf(req.getWorkspace().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
+        }
         switch (workspace) {
             case FACTORY -> {
                 FactoryProjection factory = factoryProjectionRepository.findByName(req.getBranch())

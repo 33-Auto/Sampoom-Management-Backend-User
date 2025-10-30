@@ -25,4 +25,11 @@ public class AuthUserProjection extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    private String lastEventId;
+    private Long version;
+
+    public void updateFromPayload(Role role) {
+        this.role = role;
+    }
 }
