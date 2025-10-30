@@ -8,6 +8,8 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
+import static com.sampoom.user.common.entity.EmployeeStatus.ACTIVE;
+
 @Entity
 @Table(name = "factory_employee")
 @Getter
@@ -44,6 +46,7 @@ public class FactoryEmployee extends BaseTimeEntity {
 
     @PrePersist
     void prePersist() {
+        if (status == null) status = ACTIVE;
         if (startedAt == null) startedAt = LocalDateTime.now();
     }
 

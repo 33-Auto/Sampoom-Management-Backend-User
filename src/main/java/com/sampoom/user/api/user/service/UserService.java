@@ -1,8 +1,20 @@
 package com.sampoom.user.api.user.service;
 
-import com.sampoom.user.api.auth.entity.AuthUserProjection;
+import com.sampoom.user.api.agency.entity.AgencyEmployee;
+import com.sampoom.user.api.agency.entity.AgencyProjection;
+import com.sampoom.user.api.agency.repository.AgencyEmployeeRepository;
+import com.sampoom.user.api.agency.repository.AgencyProjectionRepository;
 import com.sampoom.user.api.factory.entity.FactoryEmployee;
+import com.sampoom.user.api.factory.entity.FactoryProjection;
+import com.sampoom.user.api.factory.repository.FactoryEmployeeRepository;
+import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
+import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
+import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
+import com.sampoom.user.api.warehouse.repository.WarehouseEmployeeRepository;
+import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
+import com.sampoom.user.common.entity.Position;
+import com.sampoom.user.common.exception.BadRequestException;
 import com.sampoom.user.common.exception.ConflictException;
 import com.sampoom.user.common.exception.NotFoundException;
 import com.sampoom.user.common.response.ErrorStatus;
@@ -11,15 +23,23 @@ import com.sampoom.user.api.user.dto.response.UserUpdateResponse;
 import com.sampoom.user.api.user.entity.User;
 import com.sampoom.user.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final AuthUserProjection authUserProjection;
+    private final FactoryProjectionRepository factoryProjectionRepository;
+    private final FactoryEmployeeRepository factoryEmployeeRepository;
+    private final WarehouseProjectionRepository warehouseProjectionRepository;
+    private final WarehouseEmployeeRepository warehouseEmployeeRepository;
+    private final AgencyProjectionRepository agencyProjectionRepository;
+    private final AgencyEmployeeRepository agencyEmployeeRepository;
+
 
     @Transactional
     public void createProfile(SignupUser req) {
@@ -28,15 +48,50 @@ public class UserService {
             throw new ConflictException(ErrorStatus.USER_ID_DUPLICATED);
         }
 
-        // TODO: Factory/Warehouse/Agency 분기
-        // TODO: 매핑할 필드: branch->name,(factoryId)
-
+        // User:
         User user = User.builder()
                 .id(req.getUserId())
                 .userName(req.getUserName())
                 .build();
+        userRepository.save(user);
 
-//        userRepository.save(user);
+        // Employee:
+        switch (req.getWorkspace().toUpperCase()) {
+            case "FACTORY" -> {
+                FactoryProjection factory = factoryProjectionRepository.findByName(req.getBranch())
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.FACTORY_NAME_NOT_FOUND));
+
+                factoryEmployeeRepository.save(FactoryEmployee.builder()
+                        .position(req.getPosition())
+                        .userId(req.getUserId())
+                        .factoryId(factory.getFactoryId())
+                        .build());
+            }
+
+            case "WAREHOUSE" -> {
+                WarehouseProjection warehouse = warehouseProjectionRepository.findByName(req.getBranch())
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.WAREHOUSE_NAME_NOT_FOUND));
+
+                warehouseEmployeeRepository.save(WarehouseEmployee.builder()
+                        .position(req.getPosition())
+                        .userId(req.getUserId())
+                        .warehouseId(warehouse.getWarehouseId())
+                        .build());
+            }
+
+            case "AGENCY" -> {
+                AgencyProjection agency = agencyProjectionRepository.findByName(req.getBranch())
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.AGENCY_NAME_NOT_FOUND));
+
+                agencyEmployeeRepository.save(AgencyEmployee.builder()
+                        .position(req.getPosition())
+                        .userId(req.getUserId())
+                        .agencyId(agency.getAgencyId())
+                        .build());
+            }
+
+            default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
+        }
     }
 
 

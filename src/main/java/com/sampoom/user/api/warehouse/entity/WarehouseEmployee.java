@@ -1,4 +1,4 @@
-package com.sampoom.user.api.agency.entity;
+package com.sampoom.user.api.warehouse.entity;
 
 import com.sampoom.user.common.entity.*;
 import jakarta.persistence.*;
@@ -11,19 +11,19 @@ import java.time.LocalDateTime;
 import static com.sampoom.user.common.entity.EmployeeStatus.ACTIVE;
 
 @Entity
-@Table(name = "agency_employee")
+@Table(name = "warehouse_employee")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@SQLDelete(sql = "UPDATE agency_employee SET deleted = true, updated_at = now() WHERE agency_employee_id = ?")
+@SQLDelete(sql = "UPDATE warehouse_employee SET deleted = true, updated_at = now() WHERE warehouse_employee_id = ?")
 @SQLRestriction("deleted = false")
-public class AgencyEmployee extends BaseTimeEntity {
+public class WarehouseEmployee extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "agency_employee_id")
-    private Long id;  // 대리점-직원 ID
+    @Column(name = "warehouse_employee_id")
+    private Long id;  // 창고-직원 ID
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -42,11 +42,11 @@ public class AgencyEmployee extends BaseTimeEntity {
     private Long userId;  // 직원 ID
 
     @Column(nullable = false)
-    private Long agencyId;  // 대리점 ID
+    private Long warehouseId;  // 창고 ID
 
     @PrePersist
     void prePersist() {
-        if (status == null) status = ACTIVE ;
+        if (status == null) status = ACTIVE;
         if (startedAt == null) startedAt = LocalDateTime.now();
     }
 
