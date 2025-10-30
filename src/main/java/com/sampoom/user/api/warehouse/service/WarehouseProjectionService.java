@@ -3,9 +3,9 @@ package com.sampoom.user.api.warehouse.service;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
 import com.sampoom.user.api.warehouse.event.WarehouseEventDto;
 import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 

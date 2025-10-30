@@ -1,15 +1,14 @@
 package com.sampoom.user.api.factory.entity;
 
-import com.sampoom.user.common.entity.EmployeeStatus;
-import com.sampoom.user.common.entity.Position;
-import com.sampoom.user.common.entity.Role;
-import com.sampoom.user.common.entity.SoftDeleteEntity;
+import com.sampoom.user.common.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+
+import static com.sampoom.user.common.entity.EmployeeStatus.ACTIVE;
 
 @Entity
 @Table(name = "factory_employee")
@@ -39,20 +38,15 @@ public class FactoryEmployee extends SoftDeleteEntity {
 
     private LocalDateTime endedAt;  // 퇴사일 (nullable)
 
-
-
     @Column(nullable = false)
     private Long userId;  // 직원 ID
 
     @Column(nullable = false)
     private Long factoryId;  // 공장 ID
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private Role role;  // 역할
-
     @PrePersist
     void prePersist() {
+        if (status == null) status = ACTIVE;
         if (startedAt == null) startedAt = LocalDateTime.now();
     }
 
@@ -60,10 +54,6 @@ public class FactoryEmployee extends SoftDeleteEntity {
     public void terminate() {
         this.status = EmployeeStatus.RETIRED;
         this.endedAt = LocalDateTime.now();
-    }
-
-    public void updateRole(Role newRole) {
-        this.role = newRole;
     }
 
     public void updatePosition(Position newPosition) {

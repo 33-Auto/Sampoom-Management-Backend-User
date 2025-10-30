@@ -1,5 +1,6 @@
 package com.sampoom.user.common.jwt;
 
+import com.sampoom.user.common.entity.Role;
 import com.sampoom.user.common.exception.UnauthorizedException;
 import com.sampoom.user.common.response.ErrorStatus;
 import io.jsonwebtoken.Claims;
@@ -17,6 +18,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+
+import static com.sampoom.user.common.entity.Role.ADMIN;
+import static com.sampoom.user.common.entity.Role.MEMBER;
 
 @Slf4j
 @Component
@@ -37,6 +41,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
             try {
                 Claims claims = jwtProvider.parse(accessToken);
+
                 // 토큰 타입 검증
                 String type = claims.get("type", String.class);
                 if ("refresh".equals(type)) {
@@ -44,10 +49,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
                 }
 
+                // service 토큰 검증
                 if ("service".equals(type)) {
                     String role = claims.get("role", String.class);
                     String subject = claims.getSubject(); // 토큰 발급자 정보 (auth-service)
-                    if (!"SVC_AUTH".equals(role)) {
+                    if (role == null || role.isBlank()) {
+                        log.warn("서비스 토큰 필수 필드 누락. subject: {}, role: {}", subject, role);
+                        throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
+                        }
+                    if (!role.startsWith("SVC_")) {
                         throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
                     }
 
@@ -60,17 +70,30 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     filterChain.doFilter(request, response);
                     return;
                 }
+
                 // 토큰에서 userId, role 가져오기
                 String userId = claims.getSubject();
-                String role = claims.get("role", String.class);
-                if (userId == null|| userId.isBlank() || role == null || role.isBlank()) {
-                    log.warn("토큰 필요 필드가 누락되었습니다. userId: {}, role: {}", userId, role);
+                String roleClaim = claims.get("role", String.class);
+                if (userId == null || userId.isBlank() || roleClaim == null || roleClaim.isBlank()) {
+                    log.warn("토큰 필요 필드가 누락되었습니다. userId: {}, role: {}", userId, roleClaim);
+                    SecurityContextHolder.clearContext();
                     filterChain.doFilter(request, response);
                     return;
                 }
-                // Spring Security는 ROLE_ 접두사를 기대함
-                // 접두사가 없으면 붙여주고, 있으면 그대로 둔다.
-                String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                Role role;
+                    try {
+                        role = Role.valueOf(roleClaim);
+                    } catch (IllegalArgumentException ex) {
+                        throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
+                    }
+
+                // 권한 매핑 (Enum Role → Security 권한명)
+                String authority;
+                switch (role) {
+                    case MEMBER -> authority = "ROLE_USER";
+                    case ADMIN -> authority = "ROLE_ADMIN";
+                    default -> authority = "ROLE_" + role.name();
+                }
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userId, null, List.of(() -> authority)

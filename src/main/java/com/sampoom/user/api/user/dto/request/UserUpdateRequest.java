@@ -1,5 +1,6 @@
 package com.sampoom.user.api.user.dto.request;
 
+import com.sampoom.user.common.entity.Position;
 import lombok.*;
 
 @Getter
@@ -9,7 +10,4 @@ import lombok.*;
 @Builder
 public class UserUpdateRequest {
     private String userName;
-    private String position;
-    private String workspace;
-    private String branch;
 }
