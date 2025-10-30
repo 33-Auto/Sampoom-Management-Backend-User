@@ -1,6 +1,8 @@
 package com.sampoom.user.api.user.service;
 
-import com.sampoom.user.api.user.internal.dto.AuthUserProfile;
+import com.sampoom.user.api.auth.entity.AuthUserProjection;
+import com.sampoom.user.api.factory.entity.FactoryEmployee;
+import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.common.exception.ConflictException;
 import com.sampoom.user.common.exception.NotFoundException;
 import com.sampoom.user.common.response.ErrorStatus;
@@ -17,33 +19,34 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AuthUserProjection authUserProjection;
 
     @Transactional
-    public void createProfile(AuthUserProfile req) {
+    public void createProfile(SignupUser req) {
         // userId로 이미 생성된 회원 여부 확인
         if (userRepository.findById(req.getUserId()).isPresent()) {
             throw new ConflictException(ErrorStatus.USER_ID_DUPLICATED);
         }
 
+        // TODO: Factory/Warehouse/Agency 분기
+        // TODO: 매핑할 필드: branch->name,(factoryId)
+
         User user = User.builder()
                 .id(req.getUserId())
-//                .userName(req.getUserName())
-//                .workspace(req.getWorkspace())
-//                .branch(req.getBranch())
-//                .position(req.getPosition())
+                .userName(req.getUserName())
                 .build();
 
-        userRepository.save(user);
+//        userRepository.save(user);
     }
 
 
     @Transactional(readOnly = true)
-    public AuthUserProfile getProfile(Long userId) {
+    public SignupUser getProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
 
-        return AuthUserProfile.builder()
-                .userId(user.getId())
+        return SignupUser.builder()
+//                .userId(user.getId())
 //                .userName(user.getUserName())
 //                .workspace(user.getWorkspace())
 //                .branch(user.getBranch())
@@ -61,15 +64,6 @@ public class UserService {
         if (req.getUserName() != null) {
             user.setUserName(req.getUserName());
         }
-//        if (req.getPosition() != null) {
-//            user.setPosition(req.getPosition());
-//        }
-//        if (req.getWorkspace() != null) {
-//            user.setWorkspace(req.getWorkspace());
-//        }
-//        if (req.getBranch() != null) {
-//            user.setBranch(req.getBranch());
-//        }
 
         // 반환 DTO 생성
         return UserUpdateResponse.from(user);

@@ -1,9 +1,6 @@
 package com.sampoom.user.api.factory.entity;
 
-import com.sampoom.user.common.entity.EmployeeStatus;
-import com.sampoom.user.common.entity.Position;
-import com.sampoom.user.common.entity.Role;
-import com.sampoom.user.common.entity.SoftDeleteEntity;
+import com.sampoom.user.common.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -19,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @SQLDelete(sql = "UPDATE factory_employee SET deleted = true, updated_at = now() WHERE factory_employee_id = ?")
 @SQLRestriction("deleted = false")
-public class FactoryEmployee extends SoftDeleteEntity {
+public class FactoryEmployee extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,17 +36,11 @@ public class FactoryEmployee extends SoftDeleteEntity {
 
     private LocalDateTime endedAt;  // 퇴사일 (nullable)
 
-
-
     @Column(nullable = false)
     private Long userId;  // 직원 ID
 
     @Column(nullable = false)
     private Long factoryId;  // 공장 ID
-
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false, length = 20)
-//    private Role role;  // 역할
 
     @PrePersist
     void prePersist() {
@@ -61,10 +52,6 @@ public class FactoryEmployee extends SoftDeleteEntity {
         this.status = EmployeeStatus.RETIRED;
         this.endedAt = LocalDateTime.now();
     }
-
-//    public void updateRole(Role newRole) {
-//        this.role = newRole;
-//    }
 
     public void updatePosition(Position newPosition) {
         this.position = newPosition;

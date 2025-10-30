@@ -1,6 +1,5 @@
 package com.sampoom.user.api.auth.repository;
 
-
 import com.sampoom.user.api.auth.entity.AuthUserProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 

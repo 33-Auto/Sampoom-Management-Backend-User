@@ -4,9 +4,9 @@ import com.sampoom.user.api.factory.entity.FactoryProjection;
 import com.sampoom.user.api.factory.entity.FactoryStatus;
 import com.sampoom.user.api.factory.event.FactoryEvent;
 import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
