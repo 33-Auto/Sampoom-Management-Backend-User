@@ -96,16 +96,13 @@ public class UserService {
 
 
     @Transactional(readOnly = true)
-    public SignupUser getProfile(Long userId) {
+    public User getProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
 
-        return SignupUser.builder()
-//                .userId(user.getId())
-//                .userName(user.getUserName())
-//                .workspace(user.getWorkspace())
-//                .branch(user.getBranch())
-//                .position(user.getPosition())
+        return User.builder()
+                .id(user.getId())
+                .userName(user.getUserName())
                 .build();
     }
 
