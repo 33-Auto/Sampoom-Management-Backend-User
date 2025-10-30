@@ -67,6 +67,7 @@ public class UserService {
         } catch (IllegalArgumentException ex) {
             throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
+
         switch (workspace) {
             case FACTORY -> {
                 FactoryProjection factory = factoryProjectionRepository.findByName(req.getBranch())
