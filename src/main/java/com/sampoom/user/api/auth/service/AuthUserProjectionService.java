@@ -52,19 +52,19 @@ public class AuthUserProjectionService {
                     return;
                 }
                 projection = existing.toBuilder()
-                    .email(payload.get("email").asText())
-                    .role(Role.valueOf(payload.get("role").asText()))
-                    .version(version)
-                    .lastEventId(eventId)
-                    .build();
+                        .email(email)
+                        .role(role)
+                        .version(version)
+                        .lastEventId(eventId)
+                        .build();
             } else {
                 projection = AuthUserProjection.builder()
-                    .userId(payload.get("userId").asLong())
-                    .email(payload.get("email").asText())
-                    .role(Role.valueOf(payload.get("role").asText()))
-                    .version(version)
-                    .lastEventId(eventId)
-                    .build();
+                        .userId(userId)
+                        .email(email)
+                        .role(role)
+                        .version(version)
+                        .lastEventId(eventId)
+                        .build();
             }
             authUserProjectionRepository.save(projection);
         } catch (Exception e) {
