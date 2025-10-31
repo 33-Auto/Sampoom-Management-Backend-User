@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -59,9 +60,13 @@ public class UserController {
         }
 
     }
-
+    // 모든 회원의 전체 정보 조회
+    @Operation(summary = "모든 회원의 전체 회원 정보를 조회", description = """
+            모든 회원의 전체 정보를 페이지 형태로 불러옵니다.<br><br> page: n번째 페이지부터 불러오기 <br> size: 페이지 당 사이즈 <br> sort: 정렬기준(id, userName),정렬순서(ASC,DESC)
+            """)
     @GetMapping("/info")
-    public ResponseEntity<ApiResponse<UserInfoListResponse>> getAllUsers(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    public ResponseEntity<ApiResponse<UserInfoListResponse>> getAllUsers(@ParameterObject @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
         UserInfoListResponse resp = userInfoService.getAllUsers(pageable);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
