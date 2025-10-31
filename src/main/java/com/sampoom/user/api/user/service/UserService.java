@@ -44,6 +44,7 @@ public class UserService {
 
     @Transactional
     public void createProfile(SignupUser req) {
+        log.info("[Signup] createProfile 진입");
         // userId로 이미 생성된 회원 여부 확인
         if (userRepository.findById(req.getUserId()).isPresent()) {
             throw new ConflictException(ErrorStatus.USER_ID_DUPLICATED);
