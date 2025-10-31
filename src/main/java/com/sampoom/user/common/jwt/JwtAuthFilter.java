@@ -51,6 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 // service 토큰 검증
                 if ("service".equals(type)) {
+                    log.info("[Signup] service 토큰 검증 진입");
                     String role = claims.get("role", String.class);
                     String subject = claims.getSubject(); // 토큰 발급자 정보 (auth-service)
                     if (role == null || role.isBlank()) {
@@ -65,7 +66,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(subject, null, List.of(() -> role));
                     SecurityContextHolder.getContext().setAuthentication(auth);
-
+                    log.info("[Signup] feign 권한 통과");
                     // service 토큰은 더 이상 검증할 필요 없음
                     filterChain.doFilter(request, response);
                     return;
