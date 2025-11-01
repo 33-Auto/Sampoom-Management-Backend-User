@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,6 +75,28 @@ public class UserInfoService {
                 .stream()
                 .collect(Collectors.toMap(AgencyEmployee::getUserId, a -> a, (existing, replacement) -> existing));
 
+        // 모든 workspace ID 수집
+        Set<Long> factoryIds = factoryMap.values().stream()
+                .map(FactoryEmployee::getFactoryId)
+                .collect(Collectors.toSet());
+        Set<Long> warehouseIds = warehouseMap.values().stream()
+                .map(WarehouseEmployee::getWarehouseId)
+                .collect(Collectors.toSet());
+        Set<Long> agencyIds = agencyMap.values().stream()
+                .map(AgencyEmployee::getAgencyId)
+                .collect(Collectors.toSet());
+
+        // 배치 조회
+        Map<Long, String> factoryNameMap = factoryProjectionRepository.findAllById(factoryIds)
+                .stream()
+                .collect(Collectors.toMap(FactoryProjection::getId, FactoryProjection::getName));
+        Map<Long, String> warehouseNameMap = warehouseProjectionRepository.findAllById(warehouseIds)
+                .stream()
+                .collect(Collectors.toMap(WarehouseProjection::getId, WarehouseProjection::getName));
+        Map<Long, String> agencyNameMap = agencyProjectionRepository.findAllById(agencyIds)
+                .stream()
+                .collect(Collectors.toMap(AgencyProjection::getId, AgencyProjection::getName));
+
         // userPage(전체 User)의 Id를 통해 userInfo를 담은 객체를 생성해 List로 묶음
         List<UserInfoResponse> userInfoList = userPage.getContent().stream()
                 .map(u -> {
@@ -91,29 +114,23 @@ public class UserInfoService {
 
                     // workspace 분기 처리, Employee 정보까지 넣기 완료 -> 이후 다음 객체를 builder로 생성 및 map
                     if (factoryEmp != null) {
-                        String factoryName = factoryProjectionRepository.findById(factoryEmp.getFactoryId())
-                                .map(FactoryProjection::getName)
-                                .orElse(null);
+                        String factoryName = factoryNameMap.get(factoryEmp.getFactoryId());
                         builder.workspace(Workspace.FACTORY)
                                 .branch(factoryName)
                                 .position(factoryEmp.getPosition())
                                 .startedAt(factoryEmp.getStartedAt())
                                 .endedAt(factoryEmp.getEndedAt());
                     } else if (warehouseEmp != null) {
-                        String warehouseName = warehouseProjectionRepository.findById(warehouseEmp.getWarehouseId())
-                                .map(WarehouseProjection::getName)
-                                .orElse(null);
+                        String warehouseName = warehouseNameMap.get(warehouseEmp.getWarehouseId());
                         builder.workspace(Workspace.WAREHOUSE)
                                 .branch(warehouseName)
                                 .position(warehouseEmp.getPosition())
                                 .startedAt(warehouseEmp.getStartedAt())
                                 .endedAt(warehouseEmp.getEndedAt());
                     } else if (agencyEmp != null) {
-                        String agencyName = agencyProjectionRepository.findById(agencyEmp.getAgencyId())
-                                .map(AgencyProjection::getName)
-                                .orElse(null);
+                        String agencyName = agencyNameMap.get(agencyEmp.getAgencyId());
                         builder.workspace(Workspace.AGENCY)
-                                .branch(String.valueOf(agencyEmp.getAgencyId()))
+                                .branch(agencyName)
                                 .position(agencyEmp.getPosition())
                                 .startedAt(agencyEmp.getStartedAt())
                                 .endedAt(agencyEmp.getEndedAt());
