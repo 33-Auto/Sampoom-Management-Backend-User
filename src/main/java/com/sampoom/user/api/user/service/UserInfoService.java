@@ -61,12 +61,12 @@ public class UserInfoService {
         // 해당하는 userId가 없으면 제외, 해당되는 userId로만 매핑
         Map<Long, AuthUserProjection> authMap = authUserProjectionRepository.findAllByUserIdIn(userIds)
                 .stream()
-                .collect(Collectors.toMap(AuthUserProjection::getUserId, a -> a));
-
+                .collect(Collectors.toMap(AuthUserProjection::getUserId, a -> a,(existing, replacement) -> existing));
+                                                         // key: userId / value: user / 중복키 발생 정책: (existing(기존키 유지), replacement(신규키 교체))
         Map<Long, FactoryEmployee> factoryMap = factoryEmployeeRepository.findAllByUserIdIn(userIds)
                 .stream()
                 .collect(Collectors.toMap(FactoryEmployee::getUserId, f -> f, (existing, replacement) -> existing));
-                                            // key: userId / value: user / 중복키 발생 정책: (existing(기존키 유지), replacement(신규키 교체))
+
         Map<Long, WarehouseEmployee> warehouseMap = warehouseEmployeeRepository.findAllByUserIdIn(userIds)
                 .stream()
                 .collect(Collectors.toMap(WarehouseEmployee::getUserId, w -> w, (existing, replacement) -> existing));
