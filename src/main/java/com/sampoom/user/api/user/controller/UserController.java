@@ -1,8 +1,9 @@
 package com.sampoom.user.api.user.controller;
 
-
+import com.sampoom.user.api.user.dto.response.UserInfoListResponse;
 import com.sampoom.user.api.user.entity.User;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
+import com.sampoom.user.api.user.service.UserInfoService;
 import com.sampoom.user.common.response.ApiResponse;
 import com.sampoom.user.common.response.SuccessStatus;
 import com.sampoom.user.api.user.dto.request.UserUpdateRequest;
@@ -13,6 +14,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -24,10 +29,10 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserInfoService userInfoService;
 
     // Auth 통신용(Feign)
-    @Hidden
-    @Operation(summary = "회원가입 내부 통신용", description = "회원가입을 통해 프로필 정보를 담은 유저를 생성합니다.")
+    @Operation(summary = "[Not Client API] 회원가입 User 서비스 내부 통신용", description = "[Not Client API] 회원가입을 통해 프로필 정보를 담은 유저를 생성합니다.")
     @PostMapping("/internal/profile")
     @PreAuthorize("hasAuthority('SVC_AUTH')")   // 내부 통신용 헤더
     public ResponseEntity<ApiResponse<Void>> createProfile(@Valid @RequestBody SignupUser req) {
@@ -52,6 +57,16 @@ public class UserController {
             throw new IllegalArgumentException("토큰 내 유효하지 않은 userId 포맷", e);
         }
 
+    }
+    // 모든 회원의 전체 정보 조회
+    @Operation(summary = "모든 회원의 전체 회원 정보를 조회", description = """
+            모든 회원의 전체 정보를 페이지 형태로 불러옵니다.<br><br> page: n번째 페이지부터 불러오기 <br> size: 페이지 당 사이즈 <br> sort: 정렬기준(id, userName),정렬순서(ASC,DESC)
+            """)
+    @GetMapping("/info")
+    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    public ResponseEntity<ApiResponse<UserInfoListResponse>> getAllUsersInfo(@ParameterObject @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        UserInfoListResponse resp = userInfoService.getAllUsersInfo(pageable);
+        return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
     // 회원 수정

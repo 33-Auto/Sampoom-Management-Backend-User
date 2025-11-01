@@ -1,5 +1,6 @@
 package com.sampoom.user.api.user.entity;
 
+import com.sampoom.user.api.auth.entity.AuthUserProjection;
 import com.sampoom.user.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
