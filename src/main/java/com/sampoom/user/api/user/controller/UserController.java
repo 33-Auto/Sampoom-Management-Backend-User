@@ -43,7 +43,7 @@ public class UserController {
     // AccessToken 내 userId로 profile 조회
     @Operation(summary = "접속자 프로필 정보 조회", description = "토큰으로 접속자의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER')")    // 내부 통신용 헤더 때문에 명시적 작성
+    @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<User>> getProfile(Authentication authentication){
         try {
             String name = authentication.getName();
@@ -63,7 +63,7 @@ public class UserController {
             모든 회원의 전체 정보를 페이지 형태로 불러옵니다.<br><br> page: n번째 페이지부터 불러오기 <br> size: 페이지 당 사이즈 <br> sort: 정렬기준(id, userName),정렬순서(ASC,DESC)
             """)
     @GetMapping("/info")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse<UserInfoListResponse>> getAllUsersInfo(@ParameterObject @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
         UserInfoListResponse resp = userInfoService.getAllUsersInfo(pageable);
         return ApiResponse.success(SuccessStatus.OK, resp);
@@ -72,7 +72,7 @@ public class UserController {
     // 회원 수정
     @Operation(summary = "접속자 프로필 정보 수정", description = "토큰으로 접속자의 프로필 정보를 수정합니다.")
     @PatchMapping("/profile")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER')")    // 내부 통신용 헤더 때문에 명시적 작성
+    @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs
