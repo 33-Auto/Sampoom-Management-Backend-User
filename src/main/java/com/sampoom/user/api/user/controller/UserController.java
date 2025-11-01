@@ -1,6 +1,5 @@
 package com.sampoom.user.api.user.controller;
 
-
 import com.sampoom.user.api.user.dto.response.UserInfoListResponse;
 import com.sampoom.user.api.user.entity.User;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
@@ -33,8 +32,7 @@ public class UserController {
     private final UserInfoService userInfoService;
 
     // Auth 통신용(Feign)
-    @Hidden
-    @Operation(summary = "회원가입 내부 통신용", description = "회원가입을 통해 프로필 정보를 담은 유저를 생성합니다.")
+    @Operation(summary = "[Not Client API] 회원가입 User 서비스 내부 통신용", description = "[Not Client API] 회원가입을 통해 프로필 정보를 담은 유저를 생성합니다.")
     @PostMapping("/internal/profile")
     @PreAuthorize("hasAuthority('SVC_AUTH')")   // 내부 통신용 헤더
     public ResponseEntity<ApiResponse<Void>> createProfile(@Valid @RequestBody SignupUser req) {
@@ -66,8 +64,8 @@ public class UserController {
             """)
     @GetMapping("/info")
     @PreAuthorize("hasAuthority('ROLE_MEMBER')")
-    public ResponseEntity<ApiResponse<UserInfoListResponse>> getAllUsers(@ParameterObject @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
-        UserInfoListResponse resp = userInfoService.getAllUsers(pageable);
+    public ResponseEntity<ApiResponse<UserInfoListResponse>> getAllUsersInfo(@ParameterObject @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        UserInfoListResponse resp = userInfoService.getAllUsersInfo(pageable);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 

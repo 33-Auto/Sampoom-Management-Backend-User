@@ -1,7 +1,6 @@
 package com.sampoom.user.api.agency.repository;
 
 import com.sampoom.user.api.agency.entity.AgencyProjection;
-import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
