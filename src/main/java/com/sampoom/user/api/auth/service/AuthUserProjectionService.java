@@ -84,7 +84,7 @@ public class AuthUserProjectionService {
         try {
             return Role.valueOf(roleStr);
         } catch (IllegalArgumentException e) {
-            log.warn("Unknown role value: {}, defaulting to MEMBER", roleStr);
+            log.warn("Unknown role value: {}, defaulting to USER", roleStr);
             return Role.USER;
         }
     }
