@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name="USER", description = "User 관련 API 입니다.")
+@Tag(name="USER", description = "User 관련 API 입니다.<br>로그인한 유저만 가능합니다.")
 public class UserController {
 
     private final UserService userService;
@@ -41,7 +41,7 @@ public class UserController {
     }
 
     // AccessToken 내 userId로 profile 조회
-    @Operation(summary = "접속자 프로필 정보 조회", description = "토큰으로 접속자의 프로필 정보를 조회합니다.")
+    @Operation(summary = "로그인 유저 프로필 정보 조회", description = "토큰으로 로그인한 유저의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
     @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<User>> getProfile(Authentication authentication){
@@ -70,7 +70,7 @@ public class UserController {
     }
 
     // 회원 수정
-    @Operation(summary = "접속자 프로필 정보 수정", description = "토큰으로 접속자의 프로필 정보를 수정합니다.")
+    @Operation(summary = "로그인 유저 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
     @PatchMapping("/profile")
     @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser(
