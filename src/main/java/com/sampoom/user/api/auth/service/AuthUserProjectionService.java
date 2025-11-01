@@ -80,12 +80,12 @@ public class AuthUserProjectionService {
     }
 
     private Role parseRole(String roleStr) {
-        if (roleStr == null || roleStr.isBlank()) return Role.MEMBER;
+        if (roleStr == null || roleStr.isBlank()) return Role.USER;
         try {
             return Role.valueOf(roleStr);
         } catch (IllegalArgumentException e) {
             log.warn("Unknown role value: {}, defaulting to MEMBER", roleStr);
-            return Role.MEMBER;
+            return Role.USER;
         }
     }
 }
