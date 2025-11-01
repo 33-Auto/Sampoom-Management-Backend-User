@@ -19,9 +19,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-import static com.sampoom.user.common.entity.Role.ADMIN;
-import static com.sampoom.user.common.entity.Role.MEMBER;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -91,7 +88,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // 권한 매핑 (Enum Role → Security 권한명)
                 String authority;
                 switch (role) {
-                    case MEMBER -> authority = "ROLE_USER";
+                    case USER -> authority = "ROLE_USER";
                     case ADMIN -> authority = "ROLE_ADMIN";
                     default -> authority = "ROLE_" + role.name();
                 }
