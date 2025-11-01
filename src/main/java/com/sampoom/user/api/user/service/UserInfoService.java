@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,25 +35,52 @@ public class UserInfoService {
     private final WarehouseEmployeeRepository warehouseEmployeeRepository;
     private final AgencyEmployeeRepository agencyEmployeeRepository;
 
-    public UserInfoListResponse getAllUsers(Pageable pageable) {
+    public UserInfoListResponse  getAllUsers(Pageable pageable) {
+
+        // 모든 유저에서 userIdList 추출
         Page<User> userPage = userRepository.findAll(pageable);
+        List<Long> userIds = userPage.getContent()
+                .stream()
+                .map(User::getId)
+                .toList();
+        if (userIds.isEmpty()) {
+            return UserInfoListResponse.of(Page.empty(pageable));
+        }
 
-        List<UserInfoResponse> users = userPage.stream()
+        // userId에 해당하는 모든 유저 조회
+        // 해당하는 userId가 없으면 제외, 해당되는 userId로만 매핑
+        Map<Long, AuthUserProjection> authMap = authUserProjectionRepository.findAllByUserIdIn(userIds)
+                .stream()
+                .collect(Collectors.toMap(AuthUserProjection::getUserId, a -> a));
+
+        Map<Long, FactoryEmployee> factoryMap = factoryEmployeeRepository.findAllByUserIdIn(userIds)
+                .stream()
+                .collect(Collectors.toMap(FactoryEmployee::getUserId, f -> f));
+
+        Map<Long, WarehouseEmployee> warehouseMap = warehouseEmployeeRepository.findAllByUserIdIn(userIds)
+                .stream()
+                .collect(Collectors.toMap(WarehouseEmployee::getUserId, w -> w));
+
+        Map<Long, AgencyEmployee> agencyMap = agencyEmployeeRepository.findAllByUserIdIn(userIds)
+                .stream()
+                .collect(Collectors.toMap(AgencyEmployee::getUserId, a -> a));
+
+        // userPage(전체 User)의 Id를 통해 userInfo를 담은 객체를 생성해 List로 묶음
+        List<UserInfoResponse> userInfoList = userPage.getContent().stream()
                 .map(u -> {
-                    AuthUserProjection auth = authUserProjectionRepository.findByUserId(u.getId()).orElse(null);
+                    AuthUserProjection auth = authMap.get(u.getId());
+                    FactoryEmployee factoryEmp = factoryMap.get(u.getId());
+                    WarehouseEmployee warehouseEmp = warehouseMap.get(u.getId());
+                    AgencyEmployee agencyEmp = agencyMap.get(u.getId());
 
-                    // 기본 정보
+                    // 바로 넣을 수 있는 User, AuthUserProjection 정보 넣기
                     UserInfoResponse.UserInfoResponseBuilder builder = UserInfoResponse.builder()
                             .userId(u.getId())
+                            .userName(u.getUserName())
                             .email(auth != null ? auth.getEmail() : null)
-                            .role(auth != null ? auth.getRole() : null)
-                            .userName(u.getUserName());
+                            .role(auth != null ? auth.getRole() : null);
 
-                    // workspace별 직원 정보 분기
-                    FactoryEmployee factoryEmp = factoryEmployeeRepository.findByUserId(u.getId()).orElse(null);
-                    WarehouseEmployee warehouseEmp = warehouseEmployeeRepository.findByUserId(u.getId()).orElse(null);
-                    AgencyEmployee agencyEmp = agencyEmployeeRepository.findByUserId(u.getId()).orElse(null);
-
+                    // workspace 분기 처리, Employee 정보까지 넣기 완료 -> 이후 다음 객체를 builder로 생성 및 map
                     if (factoryEmp != null) {
                         builder.workspace(Workspace.FACTORY)
                                 .branch(String.valueOf(factoryEmp.getFactoryId()))
@@ -78,6 +107,7 @@ public class UserInfoService {
                 })
                 .toList();
 
-        return UserInfoListResponse.of(new PageImpl<>(users, pageable, userPage.getTotalElements()));
+        // 최종 PageImpl로 감싸서 반환
+        return UserInfoListResponse.of(new PageImpl<>(userInfoList, pageable, userPage.getTotalElements()));
     }
 }
