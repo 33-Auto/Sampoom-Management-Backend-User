@@ -56,7 +56,7 @@ public class UserController {
     @GetMapping("/profile")
     @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<UserInfoResponse>> getMyProfile(
-            @Valid @RequestParam Workspace workspace,
+            @RequestParam Workspace workspace,
             Authentication authentication
     ){
         try {
@@ -70,8 +70,8 @@ public class UserController {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("토큰 내 유효하지 않은 userId 포맷", e);
         }
-
     }
+
     // 모든 회원의 전체 정보 조회
     @Operation(summary = "모든 회원의 전체 회원 정보를 조회", description = """
             모든 회원의 전체 정보를 페이지 형태로 불러옵니다.<br><br> page: n번째 페이지부터 불러오기 <br> size: 페이지 당 사이즈 <br> sort: 정렬기준(id, userName),정렬순서(ASC,DESC)
