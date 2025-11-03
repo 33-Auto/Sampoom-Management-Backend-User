@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WarehouseEmployeeRepository extends JpaRepository<WarehouseEmployee, Long> {
-    Optional<WarehouseEmployee> findByUserId(Long userId);
+    boolean existsByUserId(Long userId);
     List<WarehouseEmployee> findAllByUserIdIn(List<Long> userIds);
+    Optional<WarehouseEmployee> findByUserId(Long userId);
 }

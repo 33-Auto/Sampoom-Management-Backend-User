@@ -24,6 +24,7 @@ public class UserInfoResponse {
     private String userName;
     // Employee
     private Workspace workspace;
+    private Long organizationId;
     private String branch;
     private Position position;
     private LocalDateTime startedAt;  // 입사일

@@ -25,6 +25,7 @@ public enum ErrorStatus {
     FACTORY_NAME_NOT_FOUND(HttpStatus.NOT_FOUND, "지점명으로 공장 이름을 찾을 수 없습니다.",10412),
     WAREHOUSE_NAME_NOT_FOUND(HttpStatus.NOT_FOUND, "지점명으로 창고 이름을 찾을 수 없습니다.",10413),
     AGENCY_NAME_NOT_FOUND(HttpStatus.NOT_FOUND, "지점명으로 대리점 이름을 찾을 수 없습니다.",10414),
+    USER_BY_WORKSPACE_NOT_FOUND(HttpStatus.NOT_FOUND,"조직 내에서 유저를 찾을 수 없습니다.",10416),
 
     // 409 CONFLICT
     USER_ID_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 유저의 ID입니다.", 10409),

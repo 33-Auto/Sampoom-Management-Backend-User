@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FactoryEmployeeRepository extends JpaRepository<FactoryEmployee, Long> {
-    Optional<FactoryEmployee> findByUserId(Long userId);
+    boolean existsByUserId(Long userId);
     List<FactoryEmployee> findAllByUserIdIn(List<Long> userIds);
+    Optional<FactoryEmployee> findByUserId(Long userId);
 }
