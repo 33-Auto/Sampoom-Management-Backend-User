@@ -53,7 +53,7 @@ public class UserController {
 
     // AccessToken 내 userId로 profile 조회
     @Operation(summary = "로그인 유저 프로필 정보 조회", description = "토큰으로 로그인한 유저의 프로필 정보를 조회합니다.")
-    @GetMapping("/profile")
+    @PostMapping("/profile")
     @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<UserInfoResponse>> getMyProfile(
             @Valid @RequestBody Workspace workspace,

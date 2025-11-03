@@ -148,7 +148,7 @@ public class UserService {
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
 
                 // projection 테이블에서 branch 이름 조회
-                String branchName = factoryRepo.findById(emp.getFactoryId())
+                String branchName = factoryRepo.findByFactoryId(emp.getFactoryId())
                         .map(FactoryProjection::getName)
                         .orElse(null);
 
@@ -169,12 +169,15 @@ public class UserService {
                 WarehouseEmployee emp = warehouseEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
 
-                String branchName = warehouseRepo.findById(emp.getWarehouseId())
+                String branchName = warehouseRepo.findByWarehouseId(emp.getWarehouseId())
                         .map(WarehouseProjection::getName)
                         .orElse(null);
 
                 return UserInfoResponse.builder()
                         .userId(userId)
+                        .email(authUser.getEmail())
+                        .role(authUser.getRole())
+                        .userName(user.getUserName())
                         .workspace(workspace)
                         .organizationId(emp.getWarehouseId())
                         .branch(branchName)
@@ -187,12 +190,15 @@ public class UserService {
                 AgencyEmployee emp = agencyEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
 
-                String branchName = agencyRepo.findById(emp.getAgencyId())
+                String branchName = agencyRepo.findByAgencyId(emp.getAgencyId())
                         .map(AgencyProjection::getName)
                         .orElse(null);
 
                 return UserInfoResponse.builder()
                         .userId(userId)
+                        .email(authUser.getEmail())
+                        .role(authUser.getRole())
+                        .userName(user.getUserName())
                         .workspace(workspace)
                         .organizationId(emp.getAgencyId())
                         .branch(branchName)
