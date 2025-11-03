@@ -1,7 +1,6 @@
 package com.sampoom.user.api.factory.repository;
 
 import com.sampoom.user.api.factory.entity.FactoryEmployee;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

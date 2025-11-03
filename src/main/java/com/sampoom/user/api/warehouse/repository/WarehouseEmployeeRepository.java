@@ -1,6 +1,5 @@
 package com.sampoom.user.api.warehouse.repository;
 
-import com.sampoom.user.api.factory.entity.FactoryEmployee;
 import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import org.springframework.data.jpa.repository.JpaRepository;
 

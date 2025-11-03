@@ -1,7 +1,6 @@
 package com.sampoom.user.api.agency.repository;
 
 import com.sampoom.user.api.agency.entity.AgencyEmployee;
-import com.sampoom.user.api.factory.entity.FactoryEmployee;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
