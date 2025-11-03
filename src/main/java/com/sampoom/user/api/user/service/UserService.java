@@ -69,7 +69,7 @@ public class UserService {
 
         Workspace workspace;
         try {
-            workspace = Workspace.valueOf(req.getWorkspace().toUpperCase());
+            workspace = req.getWorkspace();
         } catch (IllegalArgumentException ex) {
             throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
