@@ -4,16 +4,20 @@ import com.sampoom.user.api.agency.entity.AgencyEmployee;
 import com.sampoom.user.api.agency.entity.AgencyProjection;
 import com.sampoom.user.api.agency.repository.AgencyEmployeeRepository;
 import com.sampoom.user.api.agency.repository.AgencyProjectionRepository;
+import com.sampoom.user.api.auth.entity.AuthUserProjection;
+import com.sampoom.user.api.auth.repository.AuthUserProjectionRepository;
 import com.sampoom.user.api.factory.entity.FactoryEmployee;
 import com.sampoom.user.api.factory.entity.FactoryProjection;
 import com.sampoom.user.api.factory.repository.FactoryEmployeeRepository;
 import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
+import com.sampoom.user.api.user.dto.response.UserInfoResponse;
+import com.sampoom.user.api.user.internal.dto.LoginUserRequest;
+import com.sampoom.user.api.user.internal.dto.LoginUserResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
 import com.sampoom.user.api.warehouse.repository.WarehouseEmployeeRepository;
 import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
-import com.sampoom.user.common.entity.Position;
 import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.exception.BadRequestException;
 import com.sampoom.user.common.exception.ConflictException;
@@ -33,19 +37,20 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final FactoryProjectionRepository factoryProjectionRepository;
-    private final FactoryEmployeeRepository factoryEmployeeRepository;
-    private final WarehouseProjectionRepository warehouseProjectionRepository;
-    private final WarehouseEmployeeRepository warehouseEmployeeRepository;
-    private final AgencyProjectionRepository agencyProjectionRepository;
-    private final AgencyEmployeeRepository agencyEmployeeRepository;
+    private final UserRepository userRepo;
+    private final AuthUserProjectionRepository authUserRepo;
+    private final FactoryProjectionRepository factoryRepo;
+    private final FactoryEmployeeRepository factoryEmpRepo;
+    private final WarehouseProjectionRepository warehouseRepo;
+    private final WarehouseEmployeeRepository warehouseEmpRepo;
+    private final AgencyProjectionRepository agencyRepo;
+    private final AgencyEmployeeRepository agencyEmpRepo;
 
-
+    // Auth Feign
     @Transactional
     public void createProfile(SignupUser req) {
         // userId로 이미 생성된 회원 여부 확인
-        if (userRepository.findById(req.getUserId()).isPresent()) {
+        if (userRepo.findById(req.getUserId()).isPresent()) {
             throw new ConflictException(ErrorStatus.USER_ID_DUPLICATED);
         }
 
@@ -54,7 +59,8 @@ public class UserService {
                 .id(req.getUserId())
                 .userName(req.getUserName())
                 .build();
-        userRepository.save(user);
+
+        userRepo.save(user);
 
         // Employee:
         if (req.getWorkspace() == null) {
@@ -70,10 +76,10 @@ public class UserService {
 
         switch (workspace) {
             case FACTORY -> {
-                FactoryProjection factory = factoryProjectionRepository.findByName(req.getBranch())
+                FactoryProjection factory = factoryRepo.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.FACTORY_NAME_NOT_FOUND));
 
-                factoryEmployeeRepository.save(FactoryEmployee.builder()
+                factoryEmpRepo.save(FactoryEmployee.builder()
                         .position(req.getPosition())
                         .userId(req.getUserId())
                         .factoryId(factory.getFactoryId())
@@ -81,10 +87,10 @@ public class UserService {
             }
 
             case WAREHOUSE -> {
-                WarehouseProjection warehouse = warehouseProjectionRepository.findByName(req.getBranch())
+                WarehouseProjection warehouse = warehouseRepo.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.WAREHOUSE_NAME_NOT_FOUND));
 
-                warehouseEmployeeRepository.save(WarehouseEmployee.builder()
+                warehouseEmpRepo.save(WarehouseEmployee.builder()
                         .position(req.getPosition())
                         .userId(req.getUserId())
                         .warehouseId(warehouse.getWarehouseId())
@@ -92,10 +98,10 @@ public class UserService {
             }
 
             case AGENCY -> {
-                AgencyProjection agency = agencyProjectionRepository.findByName(req.getBranch())
+                AgencyProjection agency = agencyRepo.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.AGENCY_NAME_NOT_FOUND));
 
-                agencyEmployeeRepository.save(AgencyEmployee.builder()
+                agencyEmpRepo.save(AgencyEmployee.builder()
                         .position(req.getPosition())
                         .userId(req.getUserId())
                         .agencyId(agency.getAgencyId())
@@ -106,23 +112,106 @@ public class UserService {
         }
     }
 
+    @Transactional
+    public LoginUserResponse verifyWorkspace(LoginUserRequest req) {
+        if (req.getWorkspace() == null) {
+            throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
+        }
+            boolean valid = switch (req.getWorkspace()) {
+                case FACTORY -> factoryEmpRepo.existsByUserId(req.getUserId());
+                case WAREHOUSE -> warehouseEmpRepo.existsByUserId(req.getUserId());
+                case AGENCY -> agencyEmpRepo.existsByUserId(req.getUserId());
+            };
 
-    @Transactional(readOnly = true)
-    public User getProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+            if (!valid) {
+                throw new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND);
+            }
 
-        return User.builder()
-                .id(user.getId())
-                .userName(user.getUserName())
+            return LoginUserResponse.builder()
+                .userId(req.getUserId())
+                .workspace(req.getWorkspace())
+                .valid(true)
                 .build();
     }
 
-    @Transactional
-    public UserUpdateResponse updatePartialUser(Long userId, UserUpdateRequest req) {
-        // Repository 사용해서 DB에서 엔티티 조회
-        User user = userRepository.findById(userId)
+
+    @Transactional(readOnly = true)
+    public UserInfoResponse getMyProfile(Long userId, Workspace workspace) {
+        User user = userRepo.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+        AuthUserProjection authUser = authUserRepo.findByUserId(userId)
+                .orElseThrow(()-> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+
+        switch (workspace) {
+            case FACTORY -> {
+                FactoryEmployee emp = factoryEmpRepo.findByUserId(userId)
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
+
+                // projection 테이블에서 branch 이름 조회
+                String branchName = factoryRepo.findById(emp.getFactoryId())
+                        .map(FactoryProjection::getName)
+                        .orElse(null);
+
+                return UserInfoResponse.builder()
+                        .userId(userId)
+                        .email(authUser.getEmail())
+                        .role(authUser.getRole())
+                        .userName(user.getUserName())
+                        .workspace(workspace)
+                        .organizationId(emp.getFactoryId())
+                        .branch(branchName)
+                        .position(emp.getPosition())
+                        .startedAt(emp.getStartedAt())
+                        .endedAt(emp.getEndedAt())
+                        .build();
+            }
+            case WAREHOUSE -> {
+                WarehouseEmployee emp = warehouseEmpRepo.findByUserId(userId)
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
+
+                String branchName = warehouseRepo.findById(emp.getWarehouseId())
+                        .map(WarehouseProjection::getName)
+                        .orElse(null);
+
+                return UserInfoResponse.builder()
+                        .userId(userId)
+                        .workspace(workspace)
+                        .organizationId(emp.getWarehouseId())
+                        .branch(branchName)
+                        .position(emp.getPosition())
+                        .startedAt(emp.getStartedAt())
+                        .endedAt(emp.getEndedAt())
+                        .build();
+            }
+            case AGENCY -> {
+                AgencyEmployee emp = agencyEmpRepo.findByUserId(userId)
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
+
+                String branchName = agencyRepo.findById(emp.getAgencyId())
+                        .map(AgencyProjection::getName)
+                        .orElse(null);
+
+                return UserInfoResponse.builder()
+                        .userId(userId)
+                        .workspace(workspace)
+                        .organizationId(emp.getAgencyId())
+                        .branch(branchName)
+                        .position(emp.getPosition())
+                        .startedAt(emp.getStartedAt())
+                        .endedAt(emp.getEndedAt())
+                        .build();
+            }
+
+            default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
+        }
+    }
+
+    @Transactional
+    public UserUpdateResponse updateMyProfile(Long userId, UserUpdateRequest req) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+        AuthUserProjection authUser = authUserRepo.findByUserId(userId)
+                .orElseThrow(()-> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
 
         // null 아닌 필드만 수정 (Dirty Checking 사용)
         if (req.getUserName() != null) {
