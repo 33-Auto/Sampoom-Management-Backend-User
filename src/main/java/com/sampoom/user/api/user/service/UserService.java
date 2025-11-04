@@ -10,7 +10,6 @@ import com.sampoom.user.api.factory.entity.FactoryEmployee;
 import com.sampoom.user.api.factory.entity.FactoryProjection;
 import com.sampoom.user.api.factory.repository.FactoryEmployeeRepository;
 import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
-import com.sampoom.user.api.user.dto.response.UserInfoResponse;
 import com.sampoom.user.api.user.dto.response.UserLoginResponse;
 import com.sampoom.user.api.user.internal.dto.LoginRequest;
 import com.sampoom.user.api.user.internal.dto.LoginResponse;

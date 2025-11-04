@@ -116,6 +116,7 @@ public class UserInfoService {
                     if (factoryEmp != null) {
                         String factoryName = factoryNameMap.get(factoryEmp.getFactoryId());
                         builder.workspace(Workspace.FACTORY)
+                                .organizationId(factoryEmp.getFactoryId())
                                 .branch(factoryName)
                                 .position(factoryEmp.getPosition())
                                 .startedAt(factoryEmp.getStartedAt())
@@ -123,6 +124,7 @@ public class UserInfoService {
                     } else if (warehouseEmp != null) {
                         String warehouseName = warehouseNameMap.get(warehouseEmp.getWarehouseId());
                         builder.workspace(Workspace.WAREHOUSE)
+                                .organizationId(warehouseEmp.getWarehouseId())
                                 .branch(warehouseName)
                                 .position(warehouseEmp.getPosition())
                                 .startedAt(warehouseEmp.getStartedAt())
@@ -130,6 +132,7 @@ public class UserInfoService {
                     } else if (agencyEmp != null) {
                         String agencyName = agencyNameMap.get(agencyEmp.getAgencyId());
                         builder.workspace(Workspace.AGENCY)
+                                .organizationId(agencyEmp.getAgencyId())
                                 .branch(agencyName)
                                 .position(agencyEmp.getPosition())
                                 .startedAt(agencyEmp.getStartedAt())
