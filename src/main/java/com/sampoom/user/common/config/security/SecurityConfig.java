@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, CustomAuthEntryPoint customAuthEntryPoint) throws Exception {
         http
                 // CodeQL [java/spring-disabled-csrf-protection]: suppress - Stateless JWT API라 CSRF 불필요
                 .csrf(csrf -> csrf.disable())
@@ -43,27 +44,24 @@ public class SecurityConfig {
                 // 세션 미사용 명시
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // CORS 허용 설정
-//                .cors(cors -> cors.configurationSource(request -> {
-//                    var corsConfig = new CorsConfiguration();
-//                    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-//                    corsConfig.setAllowedOrigins(List.of("https://sampoom.store"
-//                            ,"https://samsam.autos"
-//                            ,"https://sampoom-management-frontend.vercel.app"
-//                            ,"http://localhost:8080"
-//                            ,"http://localhost:3000"
-//                    ));
-//                    corsConfig.setAllowCredentials(true);
-//                    corsConfig.setExposedHeaders(List.of("Authorization"));
-//                    corsConfig.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Client-Type"));
-//                    return corsConfig;
-//                }))
-                .addFilterBefore(jwtAuthFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .cors(cors -> cors.configurationSource(request -> {
+                    var corsConfig = new CorsConfiguration();
+                    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                    corsConfig.setAllowedOrigins(List.of("https://sampoom.store"
+                            ,"https://samsam.autos"
+                            ,"https://sampoom-management-frontend.vercel.app"
+                            ,"http://localhost:8080"
+                            ,"http://localhost:3000"
+                    ));
+                    corsConfig.setAllowCredentials(true);
+                    corsConfig.setExposedHeaders(List.of("Authorization"));
+                    corsConfig.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Client-Type"));
+                    return corsConfig;
+                }))
+                .addFilterAfter(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex
-                        // 인증 실패(UnauthorizedException 포함) 시 401 반환
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json;charset=UTF-8");
-                        })
+                        // 인증 실패(UnauthorizedException 포함) 시 커스텀 엔트리포인트
+                        .authenticationEntryPoint(customAuthEntryPoint)
                 );
         return http.build();
     }

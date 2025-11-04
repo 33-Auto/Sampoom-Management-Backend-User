@@ -59,17 +59,9 @@ public class UserController {
             @RequestParam Workspace workspace,
             Authentication authentication
     ){
-        try {
-            String name = authentication.getName();
-            Long userId = Long.valueOf(name);
-            if (userId <= 0) {
-                throw new IllegalArgumentException("유효하지 않은 userId: " + userId);
-            }
-            UserInfoResponse profile = userService.getMyProfile(userId, workspace);
-            return ApiResponse.success(SuccessStatus.OK, profile);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("토큰 내 유효하지 않은 userId 포맷", e);
-        }
+        Long userId = Long.valueOf(authentication.getName());
+        UserInfoResponse profile = userService.getMyProfile(userId, workspace);
+        return ApiResponse.success(SuccessStatus.OK, profile);
     }
 
     // 모든 회원의 전체 정보 조회
