@@ -11,8 +11,9 @@ import com.sampoom.user.api.factory.entity.FactoryProjection;
 import com.sampoom.user.api.factory.repository.FactoryEmployeeRepository;
 import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
 import com.sampoom.user.api.user.dto.response.UserInfoResponse;
-import com.sampoom.user.api.user.internal.dto.LoginUserRequest;
-import com.sampoom.user.api.user.internal.dto.LoginUserResponse;
+import com.sampoom.user.api.user.dto.response.UserLoginResponse;
+import com.sampoom.user.api.user.internal.dto.LoginRequest;
+import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
@@ -113,7 +114,7 @@ public class UserService {
     }
 
     @Transactional
-    public LoginUserResponse verifyWorkspace(LoginUserRequest req) {
+    public LoginResponse verifyWorkspace(LoginRequest req) {
         if (req.getWorkspace() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
@@ -127,7 +128,7 @@ public class UserService {
                 throw new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_WORKSPACE);
             }
 
-            return LoginUserResponse.builder()
+            return LoginResponse.builder()
                 .userId(req.getUserId())
                 .workspace(req.getWorkspace())
                 .valid(true)
@@ -136,7 +137,7 @@ public class UserService {
 
 
     @Transactional(readOnly = true)
-    public UserInfoResponse getMyProfile(Long userId, Workspace workspace) {
+    public UserLoginResponse getMyProfile(Long userId, Workspace workspace) {
         if (userId == null || userId <= 0)
             throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         User user = userRepo.findById(userId)
@@ -154,7 +155,7 @@ public class UserService {
                         .map(FactoryProjection::getName)
                         .orElse(null);
 
-                return UserInfoResponse.builder()
+                return UserLoginResponse.builder()
                         .userId(userId)
                         .email(authUser.getEmail())
                         .role(authUser.getRole())
@@ -175,7 +176,7 @@ public class UserService {
                         .map(WarehouseProjection::getName)
                         .orElse(null);
 
-                return UserInfoResponse.builder()
+                return UserLoginResponse.builder()
                         .userId(userId)
                         .email(authUser.getEmail())
                         .role(authUser.getRole())
@@ -196,7 +197,7 @@ public class UserService {
                         .map(AgencyProjection::getName)
                         .orElse(null);
 
-                return UserInfoResponse.builder()
+                return UserLoginResponse.builder()
                         .userId(userId)
                         .email(authUser.getEmail())
                         .role(authUser.getRole())

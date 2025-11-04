@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserInfoResponse {
+public class UserLoginResponse {
     private Long userId;
 
     // AuthUserProjection
@@ -24,6 +24,7 @@ public class UserInfoResponse {
     private String userName;
     // Employee
     private Workspace workspace;
+    private Long organizationId;
     private String branch;
     private Position position;
     private LocalDateTime startedAt;  // 입사일

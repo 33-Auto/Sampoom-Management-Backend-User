@@ -87,15 +87,15 @@ public class UserInfoService {
                 .collect(Collectors.toSet());
 
         // 배치 조회
-        Map<Long, String> factoryNameMap = factoryProjectionRepository.findAllById(factoryIds)
+        Map<Long, String> factoryNameMap = factoryProjectionRepository.findAllByFactoryIdIn(factoryIds)
                 .stream()
-                .collect(Collectors.toMap(FactoryProjection::getId, FactoryProjection::getName));
-        Map<Long, String> warehouseNameMap = warehouseProjectionRepository.findAllById(warehouseIds)
+                .collect(Collectors.toMap(FactoryProjection::getFactoryId, FactoryProjection::getName));
+        Map<Long, String> warehouseNameMap = warehouseProjectionRepository.findAllByWarehouseIdIn(warehouseIds)
                 .stream()
-                .collect(Collectors.toMap(WarehouseProjection::getId, WarehouseProjection::getName));
-        Map<Long, String> agencyNameMap = agencyProjectionRepository.findAllById(agencyIds)
+                .collect(Collectors.toMap(WarehouseProjection::getWarehouseId, WarehouseProjection::getName));
+        Map<Long, String> agencyNameMap = agencyProjectionRepository.findAllByAgencyIdIn(agencyIds)
                 .stream()
-                .collect(Collectors.toMap(AgencyProjection::getId, AgencyProjection::getName));
+                .collect(Collectors.toMap(AgencyProjection::getAgencyId, AgencyProjection::getName));
 
         // userPage(전체 User)의 Id를 통해 userInfo를 담은 객체를 생성해 List로 묶음
         List<UserInfoResponse> userInfoList = userPage.getContent().stream()

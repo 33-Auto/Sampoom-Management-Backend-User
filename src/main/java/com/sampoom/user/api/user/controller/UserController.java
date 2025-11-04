@@ -2,8 +2,9 @@ package com.sampoom.user.api.user.controller;
 
 import com.sampoom.user.api.user.dto.response.UserInfoListResponse;
 import com.sampoom.user.api.user.dto.response.UserInfoResponse;
-import com.sampoom.user.api.user.internal.dto.LoginUserRequest;
-import com.sampoom.user.api.user.internal.dto.LoginUserResponse;
+import com.sampoom.user.api.user.dto.response.UserLoginResponse;
+import com.sampoom.user.api.user.internal.dto.LoginRequest;
+import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.api.user.service.UserInfoService;
 import com.sampoom.user.api.user.service.UserService;
@@ -46,8 +47,8 @@ public class UserController {
     @Operation(summary = "[Not Client API] 로그인 User 서비스 내부 통신용", description = "[Not Client API] 로그인을 통해 유저의 조직 정합성을 검증합니다.")
     @PostMapping("/internal/verify")
     @PreAuthorize("hasAuthority('SVC_AUTH')")   // 내부 통신용 헤더
-    public ResponseEntity<LoginUserResponse> verifyWorkspace(@Valid @RequestBody LoginUserRequest req) {
-        LoginUserResponse res = userService.verifyWorkspace(req);
+    public ResponseEntity<LoginResponse> verifyWorkspace(@Valid @RequestBody LoginRequest req) {
+        LoginResponse res = userService.verifyWorkspace(req);
         return ResponseEntity.ok(res);
     }
 
@@ -55,12 +56,12 @@ public class UserController {
     @Operation(summary = "로그인 유저 프로필 정보 조회", description = "토큰으로 로그인한 유저의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
     @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
-    public ResponseEntity<ApiResponse<UserInfoResponse>> getMyProfile(
+    public ResponseEntity<ApiResponse<UserLoginResponse>> getMyProfile(
             @RequestParam Workspace workspace,
             Authentication authentication
     ){
         Long userId = Long.valueOf(authentication.getName());
-        UserInfoResponse profile = userService.getMyProfile(userId, workspace);
+        UserLoginResponse profile = userService.getMyProfile(userId, workspace);
         return ApiResponse.success(SuccessStatus.OK, profile);
     }
 
