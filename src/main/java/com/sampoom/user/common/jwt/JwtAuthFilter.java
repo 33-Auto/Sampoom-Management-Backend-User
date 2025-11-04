@@ -133,9 +133,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (header == null) return null;
         if (!header.startsWith("Bearer "))
             throw new UnauthorizedException(ErrorStatus.INVALID_TOKEN);
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7); // "Bearer " 제거
-        }
-        return null;
+        return header.substring(7); // "Bearer " 제거
     }
 }
