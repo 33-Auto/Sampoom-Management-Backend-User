@@ -80,7 +80,7 @@ public class UserController {
     @Operation(summary = "로그인 유저 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
     @PatchMapping("/profile")
     @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
-    public ResponseEntity<ApiResponse<UserUpdateResponse>> patchMyProfile(
+    public ResponseEntity<ApiResponse<UserUpdateResponse>> updateMyProfile(
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs
     ) {
@@ -89,4 +89,15 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
+    @Operation(summary = "관리자 권한 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
+    @PatchMapping("/profile-admin")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")    // 내부 통신용 헤더 때문에 명시적 작성
+    public ResponseEntity<ApiResponse<UserUpdateResponse>> updateMyAProfileAdmin(
+            Authentication authentication,
+            @RequestBody UserUpdateRequest reqs
+    ) {
+        Long userId = Long.valueOf(authentication.getName()); // Access Token에서 추출됨
+        UserUpdateResponse resp = userService.updateMyProfile(userId,reqs);
+        return ApiResponse.success(SuccessStatus.OK, resp);
+    }
 }

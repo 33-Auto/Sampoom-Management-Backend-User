@@ -38,8 +38,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        String accessToken = resolveAccessToken(request);
         try {
+            String accessToken = resolveAccessToken(request);
             if (accessToken == null) {
                 throw new CustomAuthenticationException(ErrorStatus.NULL_TOKEN);
             }
@@ -107,7 +107,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     userId, null, List.of(() -> authority)
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            filterChain.doFilter(request,response);
+            filterChain.doFilter(request, response);
         } catch (CustomAuthenticationException ex) {
             SecurityContextHolder.clearContext();
             customAuthEntryPoint.commence(request, response, ex);
@@ -117,8 +117,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     new CustomAuthenticationException(ErrorStatus.INVALID_TOKEN));
         }
     }
-
-
 
     private String resolveAccessToken(HttpServletRequest request) {
         // 쿠키에서 ACCESS_TOKEN 찾기

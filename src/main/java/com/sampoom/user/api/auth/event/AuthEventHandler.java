@@ -34,6 +34,9 @@ public class AuthEventHandler {
             log.error("[AuthUserEventHandler] Kafka 통신 실패", ex);
             throw new InternalServerErrorException(ErrorStatus.FAILED_CONNECTION_KAFKA);
         }
+        catch (InternalServerErrorException e) {
+            throw new InternalServerErrorException(ErrorStatus.INTERNAL_SERVER_ERROR);
+        }
         catch (Exception e) {
             log.error("[AuthUserEventHandler] Kafka 이벤트 처리 실패", e);
             throw new InternalServerErrorException(ErrorStatus.EVENT_PROCESSING_FAILED);

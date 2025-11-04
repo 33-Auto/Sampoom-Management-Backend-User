@@ -230,4 +230,5 @@ public class UserService {
         // 반환 DTO 생성
         return UserUpdateResponse.from(user);
     }
+
 }
