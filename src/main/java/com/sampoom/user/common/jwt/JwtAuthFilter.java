@@ -41,7 +41,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             String accessToken = resolveAccessToken(request);
             if (accessToken == null) {
-                throw new CustomAuthenticationException(ErrorStatus.NULL_TOKEN);
+                filterChain.doFilter(request, response);
+                return;
             }
             if (accessToken.isBlank()) {
                 throw new CustomAuthenticationException(ErrorStatus.BLANK_TOKEN);
