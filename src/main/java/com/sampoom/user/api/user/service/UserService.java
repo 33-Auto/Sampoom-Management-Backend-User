@@ -10,9 +10,9 @@ import com.sampoom.user.api.factory.entity.FactoryEmployee;
 import com.sampoom.user.api.factory.entity.FactoryProjection;
 import com.sampoom.user.api.factory.repository.FactoryEmployeeRepository;
 import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
-import com.sampoom.user.api.user.dto.response.UserInfoResponse;
-import com.sampoom.user.api.user.internal.dto.LoginUserRequest;
-import com.sampoom.user.api.user.internal.dto.LoginUserResponse;
+import com.sampoom.user.api.user.dto.response.UserLoginResponse;
+import com.sampoom.user.api.user.internal.dto.LoginRequest;
+import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
@@ -51,7 +51,7 @@ public class UserService {
     public void createProfile(SignupUser req) {
         // userId로 이미 생성된 회원 여부 확인
         if (userRepo.findById(req.getUserId()).isPresent()) {
-            throw new ConflictException(ErrorStatus.USER_ID_DUPLICATED);
+            throw new ConflictException(ErrorStatus.DUPLICATED_USER_ID);
         }
 
         // User:
@@ -77,7 +77,7 @@ public class UserService {
         switch (workspace) {
             case FACTORY -> {
                 FactoryProjection factory = factoryRepo.findByName(req.getBranch())
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.FACTORY_NAME_NOT_FOUND));
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_NAME));
 
                 factoryEmpRepo.save(FactoryEmployee.builder()
                         .position(req.getPosition())
@@ -88,7 +88,7 @@ public class UserService {
 
             case WAREHOUSE -> {
                 WarehouseProjection warehouse = warehouseRepo.findByName(req.getBranch())
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.WAREHOUSE_NAME_NOT_FOUND));
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_WAREHOUSE_NAME));
 
                 warehouseEmpRepo.save(WarehouseEmployee.builder()
                         .position(req.getPosition())
@@ -99,7 +99,7 @@ public class UserService {
 
             case AGENCY -> {
                 AgencyProjection agency = agencyRepo.findByName(req.getBranch())
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.AGENCY_NAME_NOT_FOUND));
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_NAME));
 
                 agencyEmpRepo.save(AgencyEmployee.builder()
                         .position(req.getPosition())
@@ -113,7 +113,7 @@ public class UserService {
     }
 
     @Transactional
-    public LoginUserResponse verifyWorkspace(LoginUserRequest req) {
+    public LoginResponse verifyWorkspace(LoginRequest req) {
         if (req.getWorkspace() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
@@ -124,10 +124,10 @@ public class UserService {
             };
 
             if (!valid) {
-                throw new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND);
+                throw new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_WORKSPACE);
             }
 
-            return LoginUserResponse.builder()
+            return LoginResponse.builder()
                 .userId(req.getUserId())
                 .workspace(req.getWorkspace())
                 .valid(true)
@@ -136,23 +136,25 @@ public class UserService {
 
 
     @Transactional(readOnly = true)
-    public UserInfoResponse getMyProfile(Long userId, Workspace workspace) {
+    public UserLoginResponse getMyProfile(Long userId, Workspace workspace) {
+        if (userId == null || userId <= 0)
+            throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
         AuthUserProjection authUser = authUserRepo.findByUserId(userId)
-                .orElseThrow(()-> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+                .orElseThrow(()-> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
         switch (workspace) {
             case FACTORY -> {
                 FactoryEmployee emp = factoryEmpRepo.findByUserId(userId)
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_WORKSPACE));
 
                 // projection 테이블에서 branch 이름 조회
                 String branchName = factoryRepo.findByFactoryId(emp.getFactoryId())
                         .map(FactoryProjection::getName)
                         .orElse(null);
 
-                return UserInfoResponse.builder()
+                return UserLoginResponse.builder()
                         .userId(userId)
                         .email(authUser.getEmail())
                         .role(authUser.getRole())
@@ -167,13 +169,13 @@ public class UserService {
             }
             case WAREHOUSE -> {
                 WarehouseEmployee emp = warehouseEmpRepo.findByUserId(userId)
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_WORKSPACE));
 
                 String branchName = warehouseRepo.findByWarehouseId(emp.getWarehouseId())
                         .map(WarehouseProjection::getName)
                         .orElse(null);
 
-                return UserInfoResponse.builder()
+                return UserLoginResponse.builder()
                         .userId(userId)
                         .email(authUser.getEmail())
                         .role(authUser.getRole())
@@ -188,13 +190,13 @@ public class UserService {
             }
             case AGENCY -> {
                 AgencyEmployee emp = agencyEmpRepo.findByUserId(userId)
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_WORKSPACE_NOT_FOUND));
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_WORKSPACE));
 
                 String branchName = agencyRepo.findByAgencyId(emp.getAgencyId())
                         .map(AgencyProjection::getName)
                         .orElse(null);
 
-                return UserInfoResponse.builder()
+                return UserLoginResponse.builder()
                         .userId(userId)
                         .email(authUser.getEmail())
                         .role(authUser.getRole())
@@ -215,9 +217,9 @@ public class UserService {
     @Transactional
     public UserUpdateResponse updateMyProfile(Long userId, UserUpdateRequest req) {
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
         AuthUserProjection authUser = authUserRepo.findByUserId(userId)
-                .orElseThrow(()-> new NotFoundException(ErrorStatus.USER_BY_ID_NOT_FOUND));
+                .orElseThrow(()-> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
         // null 아닌 필드만 수정 (Dirty Checking 사용)
         if (req.getUserName() != null) {
@@ -227,4 +229,5 @@ public class UserService {
         // 반환 DTO 생성
         return UserUpdateResponse.from(user);
     }
+
 }

@@ -18,15 +18,14 @@ public class WarehouseEventHandler {
     public void consume(String message) {
         try {
             WarehouseEventDto event = objectMapper.readValue(message, WarehouseEventDto.class);
-            log.info("📩 Received event from Kafka: {}", event);
             warehouseProjectionService.updateOrCreate(event);
         } catch (Exception e) {
-            log.error("❌ Failed to process Kafka message: {}", message, e);
+            log.error("Failed to process Kafka message: {}", message, e);
         }
     }
 
     private void handleEvent(WarehouseEventDto event) {
         // 실제 처리 로직
-        log.info("✅ Processing event logic for branch: {}", event.getName());
+        log.info("Processing event logic for branch: {}", event.getName());
     }
 }

@@ -2,8 +2,9 @@ package com.sampoom.user.api.user.controller;
 
 import com.sampoom.user.api.user.dto.response.UserInfoListResponse;
 import com.sampoom.user.api.user.dto.response.UserInfoResponse;
-import com.sampoom.user.api.user.internal.dto.LoginUserRequest;
-import com.sampoom.user.api.user.internal.dto.LoginUserResponse;
+import com.sampoom.user.api.user.dto.response.UserLoginResponse;
+import com.sampoom.user.api.user.internal.dto.LoginRequest;
+import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.api.user.service.UserInfoService;
 import com.sampoom.user.api.user.service.UserService;
@@ -46,8 +47,8 @@ public class UserController {
     @Operation(summary = "[Not Client API] 로그인 User 서비스 내부 통신용", description = "[Not Client API] 로그인을 통해 유저의 조직 정합성을 검증합니다.")
     @PostMapping("/internal/verify")
     @PreAuthorize("hasAuthority('SVC_AUTH')")   // 내부 통신용 헤더
-    public ResponseEntity<LoginUserResponse> verifyWorkspace(@Valid @RequestBody LoginUserRequest req) {
-        LoginUserResponse res = userService.verifyWorkspace(req);
+    public ResponseEntity<LoginResponse> verifyWorkspace(@Valid @RequestBody LoginRequest req) {
+        LoginResponse res = userService.verifyWorkspace(req);
         return ResponseEntity.ok(res);
     }
 
@@ -55,21 +56,13 @@ public class UserController {
     @Operation(summary = "로그인 유저 프로필 정보 조회", description = "토큰으로 로그인한 유저의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
     @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
-    public ResponseEntity<ApiResponse<UserInfoResponse>> getMyProfile(
+    public ResponseEntity<ApiResponse<UserLoginResponse>> getMyProfile(
             @RequestParam Workspace workspace,
             Authentication authentication
     ){
-        try {
-            String name = authentication.getName();
-            Long userId = Long.valueOf(name);
-            if (userId <= 0) {
-                throw new IllegalArgumentException("유효하지 않은 userId: " + userId);
-            }
-            UserInfoResponse profile = userService.getMyProfile(userId, workspace);
-            return ApiResponse.success(SuccessStatus.OK, profile);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("토큰 내 유효하지 않은 userId 포맷", e);
-        }
+        Long userId = Long.valueOf(authentication.getName());
+        UserLoginResponse profile = userService.getMyProfile(userId, workspace);
+        return ApiResponse.success(SuccessStatus.OK, profile);
     }
 
     // 모든 회원의 전체 정보 조회
@@ -87,7 +80,7 @@ public class UserController {
     @Operation(summary = "로그인 유저 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
     @PatchMapping("/profile")
     @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
-    public ResponseEntity<ApiResponse<UserUpdateResponse>> patchMyProfile(
+    public ResponseEntity<ApiResponse<UserUpdateResponse>> updateMyProfile(
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs
     ) {
@@ -96,4 +89,15 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
+    @Operation(summary = "관리자 권한 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
+    @PatchMapping("/profile-admin")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")    // 내부 통신용 헤더 때문에 명시적 작성
+    public ResponseEntity<ApiResponse<UserUpdateResponse>> updateMyAProfileAdmin(
+            Authentication authentication,
+            @RequestBody UserUpdateRequest reqs
+    ) {
+        Long userId = Long.valueOf(authentication.getName()); // Access Token에서 추출됨
+        UserUpdateResponse resp = userService.updateMyProfile(userId,reqs);
+        return ApiResponse.success(SuccessStatus.OK, resp);
+    }
 }

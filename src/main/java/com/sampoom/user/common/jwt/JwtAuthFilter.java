@@ -1,6 +1,8 @@
 package com.sampoom.user.common.jwt;
 
+import com.sampoom.user.common.config.security.CustomAuthEntryPoint;
 import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.exception.CustomAuthenticationException;
 import com.sampoom.user.common.exception.UnauthorizedException;
 import com.sampoom.user.common.response.ErrorStatus;
 import io.jsonwebtoken.Claims;
@@ -25,85 +27,96 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final CustomAuthEntryPoint customAuthEntryPoint;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = resolveAccessToken(request);
-
-        if (accessToken != null) {
-            if (accessToken.startsWith("Bearer ")) {
-                accessToken = accessToken.substring(7);
-            }
-            try {
-                Claims claims = jwtProvider.parse(accessToken);
-
-                // 토큰 타입 검증
-                String type = claims.get("type", String.class);
-                if ("refresh".equals(type)) {
-                    SecurityContextHolder.clearContext(); // 인증 정보 제거
-                    throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
-                }
-
-                // service 토큰 검증
-                if ("service".equals(type)) {
-                    log.info("[Signup] service 토큰 검증 진입");
-                    String role = claims.get("role", String.class);
-                    String subject = claims.getSubject(); // 토큰 발급자 정보 (auth-service)
-                    if (role == null || role.isBlank()) {
-                        log.warn("서비스 토큰 필수 필드 누락. subject: {}, role: {}", subject, role);
-                        throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
-                        }
-                    if (!role.startsWith("SVC_")) {
-                        throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
-                    }
-
-                    // Feign 내부 호출용 권한 통과
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(subject, null, List.of(() -> role));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                    log.info("[Signup] feign 권한 통과");
-                    // service 토큰은 더 이상 검증할 필요 없음
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-
-                // 토큰에서 userId, role 가져오기
-                String userId = claims.getSubject();
-                String roleClaim = claims.get("role", String.class);
-                if (userId == null || userId.isBlank() || roleClaim == null || roleClaim.isBlank()) {
-                    log.warn("토큰 필요 필드가 누락되었습니다. userId: {}, role: {}", userId, roleClaim);
-                    SecurityContextHolder.clearContext();
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-                Role role;
-                    try {
-                        role = Role.valueOf(roleClaim);
-                    } catch (IllegalArgumentException ex) {
-                        throw new UnauthorizedException(ErrorStatus.TOKEN_TYPE_INVALID);
-                    }
-
-                // 권한 매핑 (Enum Role → Security 권한명)
-                String authority;
-                switch (role) {
-                    case USER -> authority = "ROLE_USER";
-                    case ADMIN -> authority = "ROLE_ADMIN";
-                    default -> authority = "ROLE_" + role.name();
-                }
-
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userId, null, List.of(() -> authority)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (Exception e) {
-                // 토큰 검증 실패 시 SecurityContext 비움
-                SecurityContextHolder.clearContext();
-                throw e;
-            }
+        String path = request.getRequestURI();
+        if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.equals("/swagger-ui.html")) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        filterChain.doFilter(request, response);
+        try {
+            String accessToken = resolveAccessToken(request);
+            if (accessToken == null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            if (accessToken.isBlank()) {
+                throw new CustomAuthenticationException(ErrorStatus.BLANK_TOKEN);
+            }
+            Claims claims = jwtProvider.parse(accessToken);
+
+            // 토큰 타입 검증
+            String type = claims.get("type", String.class);
+
+            // service 토큰 검증
+            if ("service".equals(type)) {
+                String role = claims.get("role", String.class);
+                String subject = claims.getSubject(); // 토큰 발급자 정보 (auth-service)
+                if (role == null) {
+                    throw new CustomAuthenticationException(ErrorStatus.NULL_TOKEN_ROLE);
+                }
+                if (role.isBlank()) {
+                    throw new CustomAuthenticationException(ErrorStatus.BLANK_TOKEN_ROLE);
+                }
+                if (!role.startsWith("SVC_")) {
+                    throw new CustomAuthenticationException(ErrorStatus.NOT_SERVICE_TOKEN);
+                }
+
+                // Feign 내부 호출용 권한 통과
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(subject, null, List.of(() -> role));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                // service 토큰은 더 이상 검증할 필요 없음
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 그 외 토큰 (refresh) 예외 처리
+            if ("refresh".equals(type)) {
+                SecurityContextHolder.clearContext(); // 인증 정보 제거
+                throw new CustomAuthenticationException(ErrorStatus.NOT_ACCESS_TOKEN);
+            }
+
+            // 토큰에서 userId, role 가져오기
+            String userId = claims.getSubject();
+            String roleClaim = claims.get("role", String.class);
+            if (userId == null || userId.isBlank() || roleClaim == null || roleClaim.isBlank()) {
+                SecurityContextHolder.clearContext();
+                filterChain.doFilter(request, response);
+                return;
+            }
+            Role role;
+            try {
+                role = Role.valueOf(roleClaim);
+            } catch (IllegalArgumentException ex) {
+                throw new CustomAuthenticationException(ErrorStatus.INVALID_TOKEN_ROLE);
+            }
+
+            // 권한 매핑 (Enum Role → Security 권한명)
+            String authority;
+            switch (role) {
+                case USER -> authority = "ROLE_USER";
+                case ADMIN -> authority = "ROLE_ADMIN";
+                default -> authority = "ROLE_" + role.name();
+            }
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userId, null, List.of(() -> authority)
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            filterChain.doFilter(request, response);
+        } catch (CustomAuthenticationException ex) {
+            SecurityContextHolder.clearContext();
+            customAuthEntryPoint.commence(request, response, ex);
+        } catch (Exception ex) {
+            SecurityContextHolder.clearContext();
+            customAuthEntryPoint.commence(request, response,
+                    new CustomAuthenticationException(ErrorStatus.INVALID_TOKEN));
+        }
     }
 
     private String resolveAccessToken(HttpServletRequest request) {
@@ -116,6 +129,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
         // Bearer 방식일 때
-        return request.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
+        if (header == null) return null;
+        if (!header.startsWith("Bearer "))
+            throw new UnauthorizedException(ErrorStatus.INVALID_TOKEN);
+        return header.substring(7); // "Bearer " 제거
     }
 }

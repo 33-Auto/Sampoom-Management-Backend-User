@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sampoom.user.api.auth.entity.AuthUserProjection;
 import com.sampoom.user.api.auth.repository.AuthUserProjectionRepository;
 import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.exception.InternalServerErrorException;
+import com.sampoom.user.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,11 +25,11 @@ public class AuthUserProjectionService {
         try {
             var root = objectMapper.readTree(message);
             if (root == null || !root.has("payload") || !root.has("eventId")) {
-                throw new IllegalArgumentException("Invalid message format: missing required fields");
+                throw new InternalServerErrorException(ErrorStatus.INVALID_EVENT_FORMAT);
             }
             var payload = root.get("payload");
             if (payload == null || !payload.has("userId")) {
-                    throw new IllegalArgumentException("Invalid payload: missing userId");
+                    throw new InternalServerErrorException(ErrorStatus.INVALID_EVENT_FORMAT);
             }
 
             // 이벤트 메타데이터
@@ -67,10 +69,11 @@ public class AuthUserProjectionService {
                         .build();
             }
             authUserProjectionRepository.save(projection);
-        } catch (Exception e) {
-            log.error("Failed to process auth event: {}", message, e);
-            // rollback 유도
-            throw new RuntimeException("Failed to apply auth event", e);
+        }  catch (JsonProcessingException | IllegalArgumentException ex) {
+            throw new InternalServerErrorException(ErrorStatus.INVALID_EVENT_FORMAT);
+        }
+        catch (Exception e) {
+            throw new InternalServerErrorException(ErrorStatus.EVENT_PROCESSING_FAILED);
         }
     }
     private String getTextSafely(JsonNode node, String field, String defaultValue) {
