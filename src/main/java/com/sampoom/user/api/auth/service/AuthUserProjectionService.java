@@ -53,7 +53,7 @@ public class AuthUserProjectionService {
                 if (version <= existing.getVersion()) {
                     return;
                 }
-                projection = existing.toBuilder()
+                projection = existing.builder()
                         .email(email)
                         .role(role)
                         .version(version)

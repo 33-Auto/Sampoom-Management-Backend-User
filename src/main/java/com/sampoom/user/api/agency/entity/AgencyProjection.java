@@ -46,6 +46,7 @@ public class AgencyProjection {
     @Column(name = "last_event_id")
     private UUID lastEventId;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean deleted = false;
 

@@ -79,33 +79,37 @@ public class UserService {
                 FactoryProjection factory = factoryRepo.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_NAME));
 
-                factoryEmpRepo.save(FactoryEmployee.builder()
-                        .position(req.getPosition())
-                        .userId(req.getUserId())
+                FactoryEmployee factoryEmp = FactoryEmployee.builder()
                         .factoryId(factory.getFactoryId())
-                        .build());
+                        .build();
+
+                factoryEmp.setUserId(req.getUserId());
+                factoryEmp.updatePosition(req.getPosition());
+                factoryEmpRepo.save(factoryEmp);
             }
 
             case WAREHOUSE -> {
                 WarehouseProjection warehouse = warehouseRepo.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_WAREHOUSE_NAME));
 
-                warehouseEmpRepo.save(WarehouseEmployee.builder()
-                        .position(req.getPosition())
-                        .userId(req.getUserId())
+                WarehouseEmployee warehouseEmp = WarehouseEmployee.builder()
                         .warehouseId(warehouse.getWarehouseId())
-                        .build());
+                        .build();
+                warehouseEmp.setUserId(req.getUserId());
+                warehouseEmp.updatePosition(req.getPosition());
+                warehouseEmpRepo.save(warehouseEmp);
             }
 
             case AGENCY -> {
                 AgencyProjection agency = agencyRepo.findByName(req.getBranch())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_NAME));
 
-                agencyEmpRepo.save(AgencyEmployee.builder()
-                        .position(req.getPosition())
-                        .userId(req.getUserId())
+                AgencyEmployee agencyEmp = AgencyEmployee.builder()
                         .agencyId(agency.getAgencyId())
-                        .build());
+                        .build();
+                agencyEmp.setUserId(req.getUserId());
+                agencyEmp.updatePosition(req.getPosition());
+                agencyEmpRepo.save(agencyEmp);
             }
 
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
@@ -218,8 +222,6 @@ public class UserService {
     public UserUpdateResponse updateMyProfile(Long userId, UserUpdateRequest req) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
-        AuthUserProjection authUser = authUserRepo.findByUserId(userId)
-                .orElseThrow(()-> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
         // null 아닌 필드만 수정 (Dirty Checking 사용)
         if (req.getUserName() != null) {
@@ -230,4 +232,20 @@ public class UserService {
         return UserUpdateResponse.from(user);
     }
 
+//    @Transactional
+//    public UserUpdateAdminResponse updateMyProfileAdmin(Long userId, UserUpdateAdminRequest req) {
+//        switch (req.getWorkspace()){
+//            case FACTORY ->{
+//            }
+//            case WAREHOUSE -> {
+//
+//            }
+//            case AGENCY -> {
+//
+//            }
+//            default -> {
+//
+//            }
+//        }
+//    }
 }
