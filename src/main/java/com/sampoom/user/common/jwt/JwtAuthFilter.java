@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -32,7 +33,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+        SecurityContextHolder.clearContext();
         String path = request.getRequestURI();
         if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.equals("/swagger-ui.html")) {
             filterChain.doFilter(request, response);
@@ -68,7 +71,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 // Feign 내부 호출용 권한 통과
                 UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(subject, null, List.of(() -> role));
+                        new UsernamePasswordAuthenticationToken(
+                                subject,
+                                null,
+                                List.of(new SimpleGrantedAuthority(role))
+                        );
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 // service 토큰은 더 이상 검증할 필요 없음
                 filterChain.doFilter(request, response);
@@ -89,6 +96,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
+            // 권한 파싱 (문자열 -> Enum)
             Role role;
             try {
                 role = Role.valueOf(roleClaim);
@@ -105,7 +113,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userId, null, List.of(() -> authority)
+                    userId, null, List.of(new SimpleGrantedAuthority(authority))
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);

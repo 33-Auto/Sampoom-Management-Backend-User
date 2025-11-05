@@ -10,6 +10,5 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserUpdateAdminRequest {
-    private Workspace workspace;
     private Position position;
 }
