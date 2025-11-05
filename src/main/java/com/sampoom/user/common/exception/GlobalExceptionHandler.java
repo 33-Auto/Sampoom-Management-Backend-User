@@ -1,10 +1,12 @@
 package com.sampoom.user.common.exception;
 
 import com.sampoom.user.common.response.ApiResponse;
+import com.sampoom.user.common.response.ErrorStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,6 +14,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthorizationDenied(AuthorizationDeniedException e) {
+        ErrorStatus error = ErrorStatus.ACCESS_DENIED;
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.errorWithCode(error.getCode(), error.getMessage()));
+    }
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ApiResponse<?>> handleBaseException(BaseException e) {

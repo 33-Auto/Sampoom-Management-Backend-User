@@ -10,11 +10,4 @@ import lombok.Getter;
 public class UserUpdateResponse {
     private Long userId;
     private String userName;
-
-    public static UserUpdateResponse from(User user) {
-        return UserUpdateResponse.builder()
-                .userId(user.getId())
-                .userName(user.getUserName())
-                .build();
-    }
 }

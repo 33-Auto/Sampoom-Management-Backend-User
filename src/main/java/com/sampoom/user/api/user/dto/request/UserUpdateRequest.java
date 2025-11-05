@@ -8,5 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserUpdateRequest {
+    private Long userId;
     private String userName;
 }

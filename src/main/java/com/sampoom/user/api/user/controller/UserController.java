@@ -1,5 +1,6 @@
 package com.sampoom.user.api.user.controller;
 
+import com.sampoom.user.api.user.dto.request.UserUpdateAdminRequest;
 import com.sampoom.user.api.user.dto.response.*;
 import com.sampoom.user.api.user.internal.dto.LoginRequest;
 import com.sampoom.user.api.user.internal.dto.LoginResponse;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,6 +26,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @Tag(name="USER", description = "User 관련 API 입니다.<br>로그인한 유저만 가능합니다.")
@@ -98,18 +101,18 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
-
-
-//    // 관리자 권한 회원 수정
-//    @Operation(summary = "관리자 권한 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
-//    @PatchMapping("/profile-admin")
-//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")    // 내부 통신용 헤더 때문에 명시적 작성
-//    public ResponseEntity<ApiResponse<UserUpdateAdminResponse>> updateMyAProfileAdmin(
-//            Authentication authentication,
-//            @RequestBody UserUpdateAdminRequest reqs
-//    ) {
-//        Long userId = Long.valueOf(authentication.getName()); // Access Token에서 추출됨
-//        UserUpdateAdminResponse resp = userService.updateMyProfileAdmin(userId,reqs);
-//        return ApiResponse.success(SuccessStatus.OK, resp);
-//    }
+    // 관리자 권한 회원 수정
+    @Operation(summary = "관리자 권한 프로필 정보 수정", description = "관리자 권한으로 유저ID를 통해 직원의 조직 정보를 수정합니다.")
+    @PatchMapping("/profile-admin")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")    // 내부 통신용 헤더 때문에 명시적 작성
+    public ResponseEntity<ApiResponse<UserUpdateAdminResponse>> updateOtherProfile(
+            Authentication authentication,
+            @RequestBody UserUpdateAdminRequest reqs
+    ) {
+        // 로깅, 감사용
+        Long adminId = Long.valueOf(authentication.getName());
+        log.info("관리자 {} 가 직원 {} 의 정보를 수정했습니다. ", adminId, reqs.getUserId());
+        UserUpdateAdminResponse resp = userService.updateOtherProfile(reqs);
+        return ApiResponse.success(SuccessStatus.OK, resp);
+    }
 }
