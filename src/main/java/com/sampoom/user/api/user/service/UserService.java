@@ -238,21 +238,21 @@ public class UserService {
     }
 
     @Transactional
-    public UserUpdateAdminResponse updateOtherProfile(UserUpdateAdminRequest req) {
-        if (req.getUserId() == null || req.getWorkspace() == null || req.getPosition() == null) {
+    public UserUpdateAdminResponse updateUserProfile(Long userId, Workspace workspace, UserUpdateAdminRequest req) {
+        if (userId == null || workspace == null || req.getPosition() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         }
-        Long userId = req.getUserId();
-        Workspace workspace = req.getWorkspace();
         Position newPosition = req.getPosition();
+        User user = userRepo.findById(userId)
+                .orElseThrow(()->new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
         switch (workspace) {
             case FACTORY -> {
                 FactoryEmployee emp = factoryEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_EMPLOYEE));
-                emp.setPosition(newPosition);
                 return UserUpdateAdminResponse.builder()
                         .userId(emp.getUserId())
+                        .userName(user.getUserName())
                         .workspace(workspace)
                         .position(emp.getPosition())
                         .build();
@@ -263,6 +263,7 @@ public class UserService {
                 emp.setPosition(newPosition);
                 return UserUpdateAdminResponse.builder()
                         .userId(emp.getUserId())
+                        .userName(user.getUserName())
                         .workspace(workspace)
                         .position(emp.getPosition())
                         .build();
@@ -273,6 +274,7 @@ public class UserService {
                 emp.setPosition(newPosition);
                 return UserUpdateAdminResponse.builder()
                         .userId(emp.getUserId())
+                        .userName(user.getUserName())
                         .workspace(workspace)
                         .position(emp.getPosition())
                         .build();

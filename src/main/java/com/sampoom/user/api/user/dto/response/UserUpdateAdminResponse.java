@@ -9,6 +9,7 @@ import lombok.Getter;
 @Builder
 public class UserUpdateAdminResponse {
     private Long userId;
+    private String userName;
     private Workspace workspace;
     private Position position;
 }

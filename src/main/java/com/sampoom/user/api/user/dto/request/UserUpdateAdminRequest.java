@@ -10,7 +10,5 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserUpdateAdminRequest {
-    private Long userId;
-    private Workspace workspace;
     private Position position;
 }
