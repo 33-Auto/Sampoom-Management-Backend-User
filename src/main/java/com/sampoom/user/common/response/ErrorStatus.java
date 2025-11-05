@@ -37,8 +37,8 @@ public enum ErrorStatus {
     NOT_FOUND_AGENCY_NAME(HttpStatus.NOT_FOUND, "지점명으로 대리점 이름을 찾을 수 없습니다.", 10442),
     NOT_FOUND_USER_BY_WORKSPACE(HttpStatus.NOT_FOUND, "조직 내에서 유저를 찾을 수 없습니다.", 11441),
     NOT_FOUND_FACTORY_EMPLOYEE(HttpStatus.NOT_FOUND,"전체 공장에서 해당 직원을 찾을 수 없습니다.",11442),
-    NOT_FOUND_WAREHOUSE_EMPLOYEE(HttpStatus.NOT_FOUND,"전체 공장에서 해당 직원을 찾을 수 없습니다.",11442),
-    NOT_FOUND_AGENCY_EMPLOYEE(HttpStatus.NOT_FOUND,"전체 공장에서 해당 직원을 찾을 수 없습니다.",11442),
+    NOT_FOUND_WAREHOUSE_EMPLOYEE(HttpStatus.NOT_FOUND,"전체 공장에서 해당 직원을 찾을 수 없습니다.",11443),
+    NOT_FOUND_AGENCY_EMPLOYEE(HttpStatus.NOT_FOUND,"전체 공장에서 해당 직원을 찾을 수 없습니다.",11444),
 
     // 409 CONFLICT
     DUPLICATED_USER_ID(HttpStatus.CONFLICT, "이미 존재하는 유저의 ID입니다.", 11491),

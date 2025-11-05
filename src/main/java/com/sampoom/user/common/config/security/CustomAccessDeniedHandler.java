@@ -25,7 +25,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
 
-        ErrorStatus error = ErrorStatus.ACCESS_DENIED; // 새 항목 정의 필요 (예: 11403, "접근 권한이 없습니다.")
+        ErrorStatus error = ErrorStatus.ACCESS_DENIED;
 
         ApiResponse<Void> body = ApiResponse.errorWithCode(
                 error.getCode(),
