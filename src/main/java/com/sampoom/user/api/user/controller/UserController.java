@@ -1,8 +1,6 @@
 package com.sampoom.user.api.user.controller;
 
-import com.sampoom.user.api.user.dto.response.UserInfoListResponse;
-import com.sampoom.user.api.user.dto.response.UserInfoResponse;
-import com.sampoom.user.api.user.dto.response.UserLoginResponse;
+import com.sampoom.user.api.user.dto.response.*;
 import com.sampoom.user.api.user.internal.dto.LoginRequest;
 import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
@@ -12,9 +10,9 @@ import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.response.ApiResponse;
 import com.sampoom.user.common.response.SuccessStatus;
 import com.sampoom.user.api.user.dto.request.UserUpdateRequest;
-import com.sampoom.user.api.user.dto.response.UserUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -67,12 +65,23 @@ public class UserController {
 
     // 모든 회원의 전체 정보 조회
     @Operation(summary = "모든 회원의 전체 회원 정보를 조회", description = """
-            모든 회원의 전체 정보를 페이지 형태로 불러옵니다.<br><br> page: n번째 페이지부터 불러오기 <br> size: 페이지 당 사이즈 <br> sort: 정렬기준(id, userName),정렬순서(ASC,DESC)
+            모든 회원의 전체 정보를 페이지 형태로 불러옵니다.
+            <br><br> **page**: n번째 페이지부터 불러오기
+            <br> **size**: 페이지 당 사이즈
+            <br> **sort**: 정렬기준(id, userName),정렬순서(ASC,DESC)
+            <br><br> **workspace**: 조직 (미지정 시 조직 상관없이 전체 조회)
+            <br> **organizationId**: 조직 ID (**workspace 필수**, 미지정 시 조직 내 전체 조회)
             """)
     @GetMapping("/info")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<ApiResponse<UserInfoListResponse>> getAllUsersInfo(@ParameterObject @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
-        UserInfoListResponse resp = userInfoService.getAllUsersInfo(pageable);
+    public ResponseEntity<ApiResponse<UserInfoListResponse>> getUsersInfo(
+            @ParameterObject
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC)
+            Pageable pageable,
+            @RequestParam(required=false)Workspace workspace,
+            @RequestParam(required=false)Long organizationId
+    ) {
+        UserInfoListResponse resp = userInfoService.getUsersInfo(pageable, workspace, organizationId);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
@@ -89,15 +98,18 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
-    @Operation(summary = "관리자 권한 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
-    @PatchMapping("/profile-admin")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")    // 내부 통신용 헤더 때문에 명시적 작성
-    public ResponseEntity<ApiResponse<UserUpdateResponse>> updateMyAProfileAdmin(
-            Authentication authentication,
-            @RequestBody UserUpdateRequest reqs
-    ) {
-        Long userId = Long.valueOf(authentication.getName()); // Access Token에서 추출됨
-        UserUpdateResponse resp = userService.updateMyProfile(userId,reqs);
-        return ApiResponse.success(SuccessStatus.OK, resp);
-    }
+
+
+//    // 관리자 권한 회원 수정
+//    @Operation(summary = "관리자 권한 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
+//    @PatchMapping("/profile-admin")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")    // 내부 통신용 헤더 때문에 명시적 작성
+//    public ResponseEntity<ApiResponse<UserUpdateAdminResponse>> updateMyAProfileAdmin(
+//            Authentication authentication,
+//            @RequestBody UserUpdateAdminRequest reqs
+//    ) {
+//        Long userId = Long.valueOf(authentication.getName()); // Access Token에서 추출됨
+//        UserUpdateAdminResponse resp = userService.updateMyProfileAdmin(userId,reqs);
+//        return ApiResponse.success(SuccessStatus.OK, resp);
+//    }
 }

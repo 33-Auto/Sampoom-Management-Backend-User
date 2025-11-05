@@ -18,8 +18,10 @@ import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
 import com.sampoom.user.api.warehouse.repository.WarehouseEmployeeRepository;
 import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
-import com.sampoom.user.common.entity.Position;
 import com.sampoom.user.common.entity.Workspace;
+import com.sampoom.user.common.exception.BadRequestException;
+import com.sampoom.user.common.response.ErrorStatus;
+import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,15 +29,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserInfoService {
+
     private final UserRepository userRepository;
     private final AuthUserProjectionRepository authUserProjectionRepository;
     private final FactoryEmployeeRepository factoryEmployeeRepository;
@@ -45,98 +46,148 @@ public class UserInfoService {
     private final AgencyEmployeeRepository agencyEmployeeRepository;
     private final AgencyProjectionRepository agencyProjectionRepository;
 
-    public UserInfoListResponse getAllUsersInfo(Pageable pageable) {
+    public UserInfoListResponse getUsersInfo(
+            Pageable pageable,
+            @Nullable Workspace workspace,
+            @Nullable Long organizationId
+    ) {
+        if (workspace == null && organizationId != null) {
+            throw new BadRequestException(ErrorStatus.INVALID_REQUEST_ORGID);
+        }
+        // userIds: userId만 모아둔 Set
+        Set<Long> userIds = new HashSet<>();
+        Page<User> userPage;
 
-        // 모든 유저에서 userIdList 추출
-        Page<User> userPage = userRepository.findAll(pageable);
-        List<Long> userIds = userPage.getContent()
-                .stream()
-                .map(User::getId)
-                .toList();
-        if (userIds.isEmpty()) {
-            return UserInfoListResponse.of(Page.empty(pageable));
+        // workspace가 null → 전체 사용자 조회
+        if (workspace == null) {
+            userPage = userRepository.findAll(pageable);
+            userIds.addAll(userPage.getContent().stream().map(User::getId).toList());
+            if (userIds.isEmpty()) {
+                return UserInfoListResponse.of(Page.empty(pageable));
+            }
+            return buildUserInfoListResponse(userPage, userPage, pageable, userIds);
         }
 
-        // userId에 해당하는 모든 유저 조회
-        // 해당하는 userId가 없으면 제외, 해당되는 userId로만 매핑
+        // workspace별로 분기 (factory / warehouse / agency)
+        // list: Employee들을 모아둔 List
+        switch (workspace) {
+            case FACTORY -> {
+                Page<FactoryEmployee> factoryPage = (organizationId == null)
+                        ? factoryEmployeeRepository.findAll(pageable)
+                        : factoryEmployeeRepository.findAllByFactoryId(organizationId, pageable);
+                userIds.addAll(factoryPage.getContent().stream()
+                        .map(FactoryEmployee::getUserId)
+                        .toList());
+                if (userIds.isEmpty()) {
+                    return UserInfoListResponse.of(Page.empty(pageable));
+                }
+                Page<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                return buildUserInfoListResponse(users, factoryPage, pageable, userIds);
+            }
+            case WAREHOUSE -> {
+                Page<WarehouseEmployee> warehousePage = (organizationId == null)
+                        ? warehouseEmployeeRepository.findAll(pageable)
+                        : warehouseEmployeeRepository.findAllByWarehouseId(organizationId, pageable);
+                userIds.addAll(warehousePage.getContent().stream()
+                        .map(WarehouseEmployee::getUserId)
+                        .toList());
+                if (userIds.isEmpty()) {
+                    return UserInfoListResponse.of(Page.empty(pageable));
+                }
+                Page<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                return buildUserInfoListResponse(users, warehousePage, pageable, userIds);
+            }
+            case AGENCY -> {
+                Page<AgencyEmployee> agencyPage = (organizationId == null)
+                        ? agencyEmployeeRepository.findAll(pageable)
+                        : agencyEmployeeRepository.findAllByAgencyId(organizationId, pageable);
+                userIds.addAll(agencyPage.getContent().stream()
+                        .map(AgencyEmployee::getUserId)
+                        .toList());
+                if (userIds.isEmpty()) {
+                    return UserInfoListResponse.of(Page.empty(pageable));
+                }
+                Page<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                return buildUserInfoListResponse(users, agencyPage, pageable, userIds);
+            }
+            default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
+        }
+    }
+
+    // 조직 별 검색 응답 빌더
+    private UserInfoListResponse buildUserInfoListResponse(
+            Page<User> users,
+            Page<?> employeePage,
+            Pageable pageable,
+            Collection<Long> userIds
+    ) {
+        // AuthUserProjection
         Map<Long, AuthUserProjection> authMap = authUserProjectionRepository.findAllByUserIdIn(userIds)
                 .stream()
-                .collect(Collectors.toMap(AuthUserProjection::getUserId, a -> a,(existing, replacement) -> existing));
-                                                         // key: userId / value: user / 중복키 발생 정책: (existing(기존키 유지), replacement(신규키 교체))
+                .collect(Collectors.toMap(AuthUserProjection::getUserId, a -> a, (existing, r) -> existing));
+
+        // Employee 맵
         Map<Long, FactoryEmployee> factoryMap = factoryEmployeeRepository.findAllByUserIdIn(userIds)
-                .stream()
-                .collect(Collectors.toMap(FactoryEmployee::getUserId, f -> f, (existing, replacement) -> existing));
-
+                .stream().collect(Collectors.toMap(FactoryEmployee::getUserId, f -> f, (e, r) -> e));
         Map<Long, WarehouseEmployee> warehouseMap = warehouseEmployeeRepository.findAllByUserIdIn(userIds)
-                .stream()
-                .collect(Collectors.toMap(WarehouseEmployee::getUserId, w -> w, (existing, replacement) -> existing));
-
+                .stream().collect(Collectors.toMap(WarehouseEmployee::getUserId, w -> w, (e, r) -> e));
         Map<Long, AgencyEmployee> agencyMap = agencyEmployeeRepository.findAllByUserIdIn(userIds)
-                .stream()
-                .collect(Collectors.toMap(AgencyEmployee::getUserId, a -> a, (existing, replacement) -> existing));
+                .stream().collect(Collectors.toMap(AgencyEmployee::getUserId, a -> a, (e, r) -> e));
 
-        // 모든 workspace ID 수집
-        Set<Long> factoryIds = factoryMap.values().stream()
-                .map(FactoryEmployee::getFactoryId)
-                .collect(Collectors.toSet());
-        Set<Long> warehouseIds = warehouseMap.values().stream()
-                .map(WarehouseEmployee::getWarehouseId)
-                .collect(Collectors.toSet());
-        Set<Long> agencyIds = agencyMap.values().stream()
-                .map(AgencyEmployee::getAgencyId)
-                .collect(Collectors.toSet());
+        // projection 매핑
+        Map<Long, String> factoryNameMap = factoryProjectionRepository
+                .findAllByFactoryIdIn(factoryMap.values().stream()
+                        .map(FactoryEmployee::getFactoryId)
+                        .collect(Collectors.toSet()))
+                .stream().collect(Collectors.toMap(FactoryProjection::getFactoryId, FactoryProjection::getName));
 
-        // 배치 조회
-        Map<Long, String> factoryNameMap = factoryProjectionRepository.findAllByFactoryIdIn(factoryIds)
-                .stream()
-                .collect(Collectors.toMap(FactoryProjection::getFactoryId, FactoryProjection::getName));
-        Map<Long, String> warehouseNameMap = warehouseProjectionRepository.findAllByWarehouseIdIn(warehouseIds)
-                .stream()
-                .collect(Collectors.toMap(WarehouseProjection::getWarehouseId, WarehouseProjection::getName));
-        Map<Long, String> agencyNameMap = agencyProjectionRepository.findAllByAgencyIdIn(agencyIds)
-                .stream()
-                .collect(Collectors.toMap(AgencyProjection::getAgencyId, AgencyProjection::getName));
+        Map<Long, String> warehouseNameMap = warehouseProjectionRepository
+                .findAllByWarehouseIdIn(warehouseMap.values().stream()
+                        .map(WarehouseEmployee::getWarehouseId)
+                        .collect(Collectors.toSet()))
+                .stream().collect(Collectors.toMap(WarehouseProjection::getWarehouseId, WarehouseProjection::getName));
 
-        // userPage(전체 User)의 Id를 통해 userInfo를 담은 객체를 생성해 List로 묶음
-        List<UserInfoResponse> userInfoList = userPage.getContent().stream()
+        Map<Long, String> agencyNameMap = agencyProjectionRepository
+                .findAllByAgencyIdIn(agencyMap.values().stream()
+                        .map(AgencyEmployee::getAgencyId)
+                        .collect(Collectors.toSet()))
+                .stream().collect(Collectors.toMap(AgencyProjection::getAgencyId, AgencyProjection::getName));
+
+        // DTO 변환
+        List<UserInfoResponse> userInfoList = users.stream()
                 .map(u -> {
                     AuthUserProjection auth = authMap.get(u.getId());
-                    FactoryEmployee factoryEmp = factoryMap.get(u.getId());
-                    WarehouseEmployee warehouseEmp = warehouseMap.get(u.getId());
-                    AgencyEmployee agencyEmp = agencyMap.get(u.getId());
+                    FactoryEmployee f = factoryMap.get(u.getId());
+                    WarehouseEmployee w = warehouseMap.get(u.getId());
+                    AgencyEmployee a = agencyMap.get(u.getId());
 
-                    // 바로 넣을 수 있는 User, AuthUserProjection 정보 넣기
                     UserInfoResponse.UserInfoResponseBuilder builder = UserInfoResponse.builder()
                             .userId(u.getId())
                             .userName(u.getUserName())
                             .email(auth != null ? auth.getEmail() : null)
                             .role(auth != null ? auth.getRole() : null);
 
-                    // workspace 분기 처리, Employee 정보까지 넣기 완료 -> 이후 다음 객체를 builder로 생성 및 map
-                    if (factoryEmp != null) {
-                        String factoryName = factoryNameMap.get(factoryEmp.getFactoryId());
+                    if (f != null) {
                         builder.workspace(Workspace.FACTORY)
-                                .organizationId(factoryEmp.getFactoryId())
-                                .branch(factoryName)
-                                .position(factoryEmp.getPosition())
-                                .startedAt(factoryEmp.getStartedAt())
-                                .endedAt(factoryEmp.getEndedAt());
-                    } else if (warehouseEmp != null) {
-                        String warehouseName = warehouseNameMap.get(warehouseEmp.getWarehouseId());
+                                .organizationId(f.getFactoryId())
+                                .branch(factoryNameMap.get(f.getFactoryId()))
+                                .position(f.getPosition())
+                                .startedAt(f.getStartedAt())
+                                .endedAt(f.getEndedAt());
+                    } else if (w != null) {
                         builder.workspace(Workspace.WAREHOUSE)
-                                .organizationId(warehouseEmp.getWarehouseId())
-                                .branch(warehouseName)
-                                .position(warehouseEmp.getPosition())
-                                .startedAt(warehouseEmp.getStartedAt())
-                                .endedAt(warehouseEmp.getEndedAt());
-                    } else if (agencyEmp != null) {
-                        String agencyName = agencyNameMap.get(agencyEmp.getAgencyId());
+                                .organizationId(w.getWarehouseId())
+                                .branch(warehouseNameMap.get(w.getWarehouseId()))
+                                .position(w.getPosition())
+                                .startedAt(w.getStartedAt())
+                                .endedAt(w.getEndedAt());
+                    } else if (a != null) {
                         builder.workspace(Workspace.AGENCY)
-                                .organizationId(agencyEmp.getAgencyId())
-                                .branch(agencyName)
-                                .position(agencyEmp.getPosition())
-                                .startedAt(agencyEmp.getStartedAt())
-                                .endedAt(agencyEmp.getEndedAt());
+                                .organizationId(a.getAgencyId())
+                                .branch(agencyNameMap.get(a.getAgencyId()))
+                                .position(a.getPosition())
+                                .startedAt(a.getStartedAt())
+                                .endedAt(a.getEndedAt());
                     } else {
                         builder.workspace(null);
                     }
@@ -145,7 +196,6 @@ public class UserInfoService {
                 })
                 .toList();
 
-        // 최종 PageImpl로 감싸서 반환
-        return UserInfoListResponse.of(new PageImpl<>(userInfoList, pageable, userPage.getTotalElements()));
+        return UserInfoListResponse.of(new PageImpl<>(userInfoList, pageable, employeePage.getTotalElements()));
     }
 }
