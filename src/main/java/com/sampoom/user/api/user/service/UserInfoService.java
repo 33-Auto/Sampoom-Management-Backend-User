@@ -21,7 +21,7 @@ import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
 import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.exception.BadRequestException;
 import com.sampoom.user.common.response.ErrorStatus;
-import io.micrometer.common.lang.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
