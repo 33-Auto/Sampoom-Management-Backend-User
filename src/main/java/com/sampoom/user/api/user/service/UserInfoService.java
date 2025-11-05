@@ -65,7 +65,7 @@ public class UserInfoService {
             if (userIds.isEmpty()) {
                 return UserInfoListResponse.of(Page.empty(pageable));
             }
-            return buildUserInfoListResponse(userPage, userPage, pageable, userIds);
+            return buildUserInfoListResponse(userPage.getContent(), userPage, pageable, userIds);
         }
 
         // workspace별로 분기 (factory / warehouse / agency)
@@ -81,7 +81,7 @@ public class UserInfoService {
                 if (userIds.isEmpty()) {
                     return UserInfoListResponse.of(Page.empty(pageable));
                 }
-                Page<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                List<User> users = userRepository.findAllByIdIn(userIds, pageable);
                 return buildUserInfoListResponse(users, factoryPage, pageable, userIds);
             }
             case WAREHOUSE -> {
@@ -94,7 +94,7 @@ public class UserInfoService {
                 if (userIds.isEmpty()) {
                     return UserInfoListResponse.of(Page.empty(pageable));
                 }
-                Page<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                List<User> users = userRepository.findAllByIdIn(userIds, pageable);
                 return buildUserInfoListResponse(users, warehousePage, pageable, userIds);
             }
             case AGENCY -> {
@@ -107,7 +107,7 @@ public class UserInfoService {
                 if (userIds.isEmpty()) {
                     return UserInfoListResponse.of(Page.empty(pageable));
                 }
-                Page<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                List<User> users = userRepository.findAllByIdIn(userIds, pageable);
                 return buildUserInfoListResponse(users, agencyPage, pageable, userIds);
             }
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
@@ -116,7 +116,7 @@ public class UserInfoService {
 
     // 조직 별 검색 응답 빌더
     private UserInfoListResponse buildUserInfoListResponse(
-            Page<User> users,
+            List<User> users,
             Page<?> employeePage,
             Pageable pageable,
             Collection<Long> userIds
