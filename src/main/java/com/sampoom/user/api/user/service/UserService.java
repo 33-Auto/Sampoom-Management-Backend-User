@@ -250,6 +250,7 @@ public class UserService {
             case FACTORY -> {
                 FactoryEmployee emp = factoryEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_EMPLOYEE));
+                emp.setPosition(newPosition);
                 return UserUpdateAdminResponse.builder()
                         .userId(emp.getUserId())
                         .userName(user.getUserName())

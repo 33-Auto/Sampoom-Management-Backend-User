@@ -97,7 +97,7 @@ public class UserController {
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs
     ) {
-        Long userId = Long.valueOf(authentication.getName()); // Access Token에서 추출됨
+        Long userId = Long.valueOf(authentication.getName()); // AccessToken에서 추출됨
         UserUpdateResponse resp = userService.updateMyProfile(userId,reqs);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
