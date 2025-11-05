@@ -81,7 +81,7 @@ public class UserInfoService {
                 if (userIds.isEmpty()) {
                     return UserInfoListResponse.of(Page.empty(pageable));
                 }
-                List<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                List<User> users = userRepository.findAllByIdIn(userIds);
                 return buildUserInfoListResponse(users, factoryPage, pageable, userIds);
             }
             case WAREHOUSE -> {
@@ -94,7 +94,7 @@ public class UserInfoService {
                 if (userIds.isEmpty()) {
                     return UserInfoListResponse.of(Page.empty(pageable));
                 }
-                List<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                List<User> users = userRepository.findAllByIdIn(userIds);
                 return buildUserInfoListResponse(users, warehousePage, pageable, userIds);
             }
             case AGENCY -> {
@@ -107,7 +107,7 @@ public class UserInfoService {
                 if (userIds.isEmpty()) {
                     return UserInfoListResponse.of(Page.empty(pageable));
                 }
-                List<User> users = userRepository.findAllByIdIn(userIds, pageable);
+                List<User> users = userRepository.findAllByIdIn(userIds);
                 return buildUserInfoListResponse(users, agencyPage, pageable, userIds);
             }
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
