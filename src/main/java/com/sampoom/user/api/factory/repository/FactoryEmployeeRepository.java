@@ -11,9 +11,8 @@ import java.util.Optional;
 
 public interface FactoryEmployeeRepository extends JpaRepository<FactoryEmployee, Long> {
     boolean existsByUserId(Long userId);
-    List<FactoryEmployee> findAllByUserIdIn(Collection<Long> userIds);
     Optional<FactoryEmployee> findByUserId(Long userId);
 
+    List<FactoryEmployee> findAllByUserIdIn(Collection<Long> userIds);
     Page<FactoryEmployee> findAllByFactoryId(Long factoryId, Pageable pageable);
-    Page<FactoryEmployee> findAll(Pageable pageable);
 }

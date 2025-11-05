@@ -16,5 +16,4 @@ public interface WarehouseEmployeeRepository extends JpaRepository<WarehouseEmpl
 
     List<WarehouseEmployee> findAllByUserIdIn(Collection<Long> userIds);
     Page<WarehouseEmployee> findAllByWarehouseId(Long warehouseId, Pageable pageable);
-    Page<WarehouseEmployee> findAll(Pageable pageable);
 }

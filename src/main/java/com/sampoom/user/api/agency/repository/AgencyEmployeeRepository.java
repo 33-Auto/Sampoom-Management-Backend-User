@@ -14,9 +14,8 @@ import java.util.Optional;
 public interface AgencyEmployeeRepository extends JpaRepository<AgencyEmployee, Long> {
     // 특정 대리점에 속한 모든 직원 조회
     boolean existsByUserId(Long userId);
-    List<AgencyEmployee> findAllByUserIdIn(Collection<Long> userIds);
     Optional<AgencyEmployee> findByUserId(Long userId);
 
+    List<AgencyEmployee> findAllByUserIdIn(Collection<Long> userIds);
     Page<AgencyEmployee> findAllByAgencyId(Long warehouseId, Pageable pageable);
-    Page<AgencyEmployee> findAll(Pageable pageable);
 }
