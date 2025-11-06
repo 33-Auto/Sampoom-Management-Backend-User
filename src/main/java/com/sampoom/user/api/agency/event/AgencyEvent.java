@@ -27,7 +27,7 @@ public class AgencyEvent {
         private Double longitude;
         private String businessNumber;
         private String ceoName;
-        private VendorStatus status;
+        private String status;
         private Boolean deleted;
     }
 }
