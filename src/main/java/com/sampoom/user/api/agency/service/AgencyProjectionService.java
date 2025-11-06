@@ -18,12 +18,12 @@ public class AgencyProjectionService {
 
     @Transactional
     public void apply(AgencyEvent event) {
-        if (event == null || event.getPayload() == null || event.getPayload().getAgencyId() == null) {
-            log.warn("Invalid event: missing payload/agencyId. event={}", event);
+        if (event == null || event.getPayload() == null || event.getPayload().getVendorId() == null) {
+            log.warn("Invalid event: missing payload/vendorId. event={}", event);
             return;
         }
 
-        Long agencyId = event.getPayload().getAgencyId();
+        Long agencyId = event.getPayload().getVendorId();
         Long incomingVersion = event.getVersion() == null ? 0L : event.getVersion();
 
         AgencyProjection existing = agencyProjectionRepository.findByAgencyId(agencyId).orElse(null);

@@ -26,9 +26,9 @@ public class AgencyProjectionUpdater {
 
         AgencyProjection next = (existing == null)
                 ? AgencyProjection.builder()
-                .agencyId(p.getAgencyId())
-                .agencyCode(p.getAgencyCode())
-                .name(p.getAgencyName())
+                .agencyId(p.getVendorId())
+                .agencyCode(p.getVendorCode())
+                .name(p.getVendorName())
                 .address(p.getAddress())
                 .latitude(p.getLatitude())
                 .longitude(p.getLongitude())
@@ -41,9 +41,9 @@ public class AgencyProjectionUpdater {
                 .sourceUpdatedAt(OffsetDateTime.parse(event.getOccurredAt()))
                 .build()
                 : existing.toBuilder()
-                .agencyId(p.getAgencyId())
-                .agencyCode(p.getAgencyCode())
-                .name(p.getAgencyName())
+                .agencyId(p.getVendorId())
+                .agencyCode(p.getVendorCode())
+                .name(p.getVendorName())
                 .address(p.getAddress())
                 .latitude(p.getLatitude())
                 .longitude(p.getLongitude())
@@ -63,7 +63,6 @@ public class AgencyProjectionUpdater {
     public void softDelete(AgencyProjection existing, AgencyEvent event) {
         if (existing == null) return;
         validateEvent(event);
-        var now = OffsetDateTime.now();
         AgencyProjection next = existing.toBuilder()
                 .version(event.getVersion())
                 .lastEventId(UUID.fromString(event.getEventId()))
@@ -81,7 +80,7 @@ public class AgencyProjectionUpdater {
         } catch (IllegalArgumentException | DateTimeParseException e) {
             throw new IllegalArgumentException(ErrorStatus.INVALID_EVENT_FORMAT.getMessage(), e);
         }
-        if (event.getPayload() == null || event.getPayload().getAgencyId() == null) {
+        if (event.getPayload() == null || event.getPayload().getVendorId() == null) {
             throw new IllegalArgumentException(ErrorStatus.INVALID_EVENT_FORMAT.getMessage());
         }
     }
