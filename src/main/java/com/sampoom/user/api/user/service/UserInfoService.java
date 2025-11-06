@@ -151,7 +151,7 @@ public class UserInfoService {
                 .findAllByAgencyIdIn(agencyMap.values().stream()
                         .map(AgencyEmployee::getAgencyId)
                         .collect(Collectors.toSet()))
-                .stream().collect(Collectors.toMap(AgencyProjection::getAgencyId, AgencyProjection::getAgencyName));
+                .stream().collect(Collectors.toMap(AgencyProjection::getAgencyId, AgencyProjection::getName));
 
         // DTO 변환
         List<UserInfoResponse> userInfoList = users.stream()

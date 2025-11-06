@@ -28,7 +28,7 @@ public class AgencyProjectionUpdater {
                 ? AgencyProjection.builder()
                 .agencyId(p.getAgencyId())
                 .agencyCode(p.getAgencyCode())
-                .agencyName(p.getAgencyName())
+                .name(p.getAgencyName())
                 .address(p.getAddress())
                 .latitude(p.getLatitude())
                 .longitude(p.getLongitude())
@@ -43,7 +43,7 @@ public class AgencyProjectionUpdater {
                 : existing.toBuilder()
                 .agencyId(p.getAgencyId())
                 .agencyCode(p.getAgencyCode())
-                .agencyName(p.getAgencyName())
+                .name(p.getAgencyName())
                 .address(p.getAddress())
                 .latitude(p.getLatitude())
                 .longitude(p.getLongitude())
@@ -70,7 +70,6 @@ public class AgencyProjectionUpdater {
                 .deleted(true)
                 .status(VendorStatus.INACTIVE)
                 .sourceUpdatedAt(OffsetDateTime.parse(event.getOccurredAt()))
-                .updatedAt(now)
                 .build();
         agencyProjectionRepository.save(next);
     }

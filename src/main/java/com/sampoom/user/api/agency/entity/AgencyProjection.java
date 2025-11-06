@@ -35,7 +35,7 @@ public class AgencyProjection {
     private String agencyCode;          // 원본 PK
 
     @Column(nullable = false, length = 100)
-    private String agencyName;
+    private String name;
 
     private String ceoName;
     private String address;

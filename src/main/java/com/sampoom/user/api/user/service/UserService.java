@@ -199,7 +199,7 @@ public class UserService {
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
 
                 String branchName = agencyRepo.findByAgencyId(emp.getAgencyId())
-                        .map(AgencyProjection::getAgencyName)
+                        .map(AgencyProjection::getName)
                         .orElse(null);
 
                 return UserLoginResponse.builder()
