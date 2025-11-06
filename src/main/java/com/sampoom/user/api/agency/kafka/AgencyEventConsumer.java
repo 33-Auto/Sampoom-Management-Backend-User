@@ -18,7 +18,7 @@ public class AgencyEventConsumer {
     private final ObjectMapper objectMapper;
     private final AgencyProjectionService agencyProjectionService;
 
-    @KafkaListener(topics = "vendor-events", groupId = "vendor-events-user")
+    @KafkaListener(topics = "vendor-events", groupId = "vendor-events-user2")
     @Transactional
     public void consume(String message) {
         try {
