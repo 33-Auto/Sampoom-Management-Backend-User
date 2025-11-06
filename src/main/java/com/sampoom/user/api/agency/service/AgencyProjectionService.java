@@ -19,7 +19,7 @@ public class AgencyProjectionService {
     @Transactional
     public void apply(AgencyEvent event) {
         if (event == null || event.getPayload() == null || event.getPayload().getVendorId() == null) {
-            log.warn("Invalid event: missing payload/agencyId. event={}", event);
+            log.warn("Invalid event: missing payload/vendorId. event={}", event);
             return;
         }
 
