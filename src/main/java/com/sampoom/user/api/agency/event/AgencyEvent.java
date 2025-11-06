@@ -19,9 +19,9 @@ public class AgencyEvent {
     @AllArgsConstructor
     @Builder
     public static class Payload {
-        private Long agencyId;
-        private String agencyCode;
-        private String agencyName;
+        private Long vendorId;
+        private String vendorCode;
+        private String vendorName;
         private String address;
         private Double latitude;
         private Double longitude;
