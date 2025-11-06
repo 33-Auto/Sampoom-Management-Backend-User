@@ -1,6 +1,5 @@
 package com.sampoom.user.api.agency.event;
 
-import com.sampoom.user.api.agency.entity.VendorStatus;
 import lombok.*;
 
 @Getter

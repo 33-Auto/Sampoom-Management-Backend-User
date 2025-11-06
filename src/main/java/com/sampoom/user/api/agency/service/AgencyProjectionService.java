@@ -47,7 +47,6 @@ public class AgencyProjectionService {
         // 이벤트 유형별 처리
         switch (event.getEventType()) {
             case "VendorCreated":
-
             case "VendorUpdated":
                 updater.upsert(existing, event);
                 break;

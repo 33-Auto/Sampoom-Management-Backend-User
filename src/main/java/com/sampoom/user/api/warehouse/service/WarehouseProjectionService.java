@@ -3,39 +3,115 @@ package com.sampoom.user.api.warehouse.service;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
 import com.sampoom.user.api.warehouse.event.WarehouseEventDto;
 import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
+import com.sampoom.user.common.entity.BranchStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class WarehouseProjectionService {
-    private final WarehouseProjectionRepository warehouseProjectionRepository;
+
+    private final WarehouseProjectionRepository repo;
 
     @Transactional
-    public void updateOrCreate(WarehouseEventDto eventDto) {
-        WarehouseProjection warehouseProjection = warehouseProjectionRepository.findByWarehouseId(eventDto.getId()).orElse(null);
+    public void apply(WarehouseEventDto e) {
+        final Long warehouseId   = e.getPayload().getBranchId();
+        final Long incomingVer = nvl(e.getVersion(), 0L);
 
-        if (warehouseProjection == null) {
-            warehouseProjection = WarehouseProjection.builder()
-                    .warehouseId(eventDto.getId())
-                    .name(eventDto.getName())
-                    .address(eventDto.getAddress())
-                    .status(eventDto.getStatus())
-                    .version(eventDto.getVersion())
-                    .sourceUpdatedAt(eventDto.getSourceUpdatedAt())
-                    .updatedAt(OffsetDateTime.now())
-                    .build();
-        } else {
-            warehouseProjection.setName(eventDto.getName());
-            warehouseProjection.setAddress(eventDto.getAddress());
-            warehouseProjection.setStatus(eventDto.getStatus());
-            warehouseProjection.setVersion(eventDto.getVersion());
-            warehouseProjection.setSourceUpdatedAt(eventDto.getSourceUpdatedAt());
-            warehouseProjection.setUpdatedAt(OffsetDateTime.now());
+        WarehouseProjection fp = repo.findByWarehouseId(warehouseId).orElse(null);
+
+        // 멱등(같은 이벤트) 차단
+        if (fp != null && e.getEventId() != null && fp.getLastEventId() != null) {
+            if (fp.getLastEventId().toString().equals(e.getEventId())) return;
         }
-        warehouseProjectionRepository.save(warehouseProjection);
+        // 역순(오래된 이벤트) 차단
+        if (fp != null && incomingVer <= nvl(fp.getVersion(), 0L)) return;
+
+        switch (e.getEventType()) {
+            case "BranchCreated":
+            case "BranchUpdated":
+                upsert(fp, e, incomingVer);
+                break;
+            case "BranchDeleted":
+                softDelete(fp, e, incomingVer);
+                break;
+            default:
+                // 필요 시 로깅
+                break;
+        }
     }
+
+    private void upsert(WarehouseProjection fp, WarehouseEventDto e, Long ver) {
+        WarehouseEventDto.Payload p = e.getPayload();
+
+        WarehouseProjection next = (fp == null)
+                ? WarehouseProjection.builder()
+                .warehouseId(p.getBranchId())
+                .branchCode(p.getBranchCode())
+                .name(p.getBranchName())
+                .address(p.getAddress())
+                .latitude(p.getLatitude())
+                .longitude(p.getLongitude())
+                .status(parseStatus(p.getStatus()))
+                .deleted(p.getDeleted())
+                .version(ver)
+                .lastEventId(parseUuid(e.getEventId()))
+                .sourceUpdatedAt(parseOffset(e.getOccurredAt()))
+                .build()
+                : fp.toBuilder()
+                // fp의 id, warehouseId 등은 보존됨(toBuilder가 복사)
+                .branchCode(p.getBranchCode())
+                .name(p.getBranchName())
+                .address(p.getAddress())
+                .latitude(p.getLatitude())
+                .longitude(p.getLongitude())
+                .status(parseStatus(p.getStatus()))
+                .deleted(p.getDeleted())
+                .version(ver)
+                .lastEventId(parseUuid(e.getEventId()))
+                .deleted(p.getDeleted())
+                .sourceUpdatedAt(parseOffset(e.getOccurredAt()))
+                .updatedAt(OffsetDateTime.now())
+                .build();
+
+        repo.save(next);
+    }
+
+    private void softDelete(WarehouseProjection fp, WarehouseEventDto e, Long ver) {
+        WarehouseEventDto.Payload p = e.getPayload();
+        if (fp == null) {
+            // 삭제 이벤트만 먼저 온 경우: 정책에 따라 무시하거나 '삭제된 스텁' 생성
+            return;
+        }
+        WarehouseProjection next = fp.toBuilder()
+                .version(ver)
+                .lastEventId(parseUuid(e.getEventId()))
+                .deleted(true)
+                .status(BranchStatus.INACTIVE)
+                .sourceUpdatedAt(parseOffset(e.getOccurredAt()))
+                .updatedAt(OffsetDateTime.now())
+                .build();
+
+        repo.save(next);
+    }
+
+    private BranchStatus parseStatus(String s) {
+        // 안전 변환 (Null/이상값 대비)
+        if (s == null) return BranchStatus.INACTIVE;
+        return BranchStatus.valueOf(s);
+    }
+
+    private UUID parseUuid(String s) {
+        return s == null ? null : UUID.fromString(s);
+    }
+
+    private OffsetDateTime parseOffset(String iso) {
+        return iso == null ? null : OffsetDateTime.parse(iso);
+    }
+
+    private long nvl(Long v, long d) { return v == null ? d : v; }
 }

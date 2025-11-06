@@ -1,10 +1,9 @@
 package com.sampoom.user.api.agency.service;
 
 import com.sampoom.user.api.agency.entity.AgencyProjection;
-import com.sampoom.user.api.agency.entity.VendorStatus;
+import com.sampoom.user.common.entity.VendorStatus;
 import com.sampoom.user.api.agency.event.AgencyEvent;
 import com.sampoom.user.api.agency.repository.AgencyProjectionRepository;
-import com.sampoom.user.common.exception.InternalServerErrorException;
 import com.sampoom.user.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -32,29 +31,28 @@ public class AgencyProjectionUpdater {
                 .address(p.getAddress())
                 .latitude(p.getLatitude())
                 .longitude(p.getLongitude())
+                .status(VendorStatus.valueOf(p.getStatus()))
                 .businessNumber(p.getBusinessNumber())
                 .ceoName(p.getCeoName())
-                .status(VendorStatus.valueOf(p.getStatus()))
                 .deleted(p.getDeleted())
                 .version(event.getVersion())
                 .lastEventId(UUID.fromString(event.getEventId()))
                 .sourceUpdatedAt(OffsetDateTime.parse(event.getOccurredAt()))
                 .build()
                 : existing.toBuilder()
-                .agencyId(p.getVendorId())
                 .agencyCode(p.getVendorCode())
                 .name(p.getVendorName())
                 .address(p.getAddress())
                 .latitude(p.getLatitude())
                 .longitude(p.getLongitude())
+                .status(VendorStatus.valueOf(p.getStatus()))
                 .businessNumber(p.getBusinessNumber())
                 .ceoName(p.getCeoName())
-                .status(VendorStatus.valueOf(p.getStatus()))
                 .deleted(p.getDeleted())
                 .version(event.getVersion())
                 .lastEventId(UUID.fromString(event.getEventId()))
-                .deleted(p.getDeleted())
                 .sourceUpdatedAt(OffsetDateTime.parse(event.getOccurredAt()))
+                .updatedAt(OffsetDateTime.now())
                 .build();
 
         agencyProjectionRepository.save(next);
@@ -69,6 +67,7 @@ public class AgencyProjectionUpdater {
                 .deleted(true)
                 .status(VendorStatus.INACTIVE)
                 .sourceUpdatedAt(OffsetDateTime.parse(event.getOccurredAt()))
+                .updatedAt(OffsetDateTime.now())
                 .build();
         agencyProjectionRepository.save(next);
     }

@@ -18,10 +18,13 @@ public class FactoryEvent {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Payload {
-        private Long factoryId;
-        private String name;
+        private Long branchId;
+        private String branchCode;
+        private String branchName;
         private String address;
-        private String status;
-        private Boolean deleted;
+        private Double latitude;
+        private Double longitude;
+        private String status;       // ACTIVE / INACTIVE 등
+        private Boolean deleted;     // 논리삭제 여부;
     }
 }

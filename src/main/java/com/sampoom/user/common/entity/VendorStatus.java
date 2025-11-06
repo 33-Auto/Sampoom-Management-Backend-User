@@ -1,4 +1,4 @@
-package com.sampoom.user.api.agency.entity;
+package com.sampoom.user.common.entity;
 
 import lombok.Getter;
 
