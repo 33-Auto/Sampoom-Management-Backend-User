@@ -14,18 +14,13 @@ public class WarehouseEventHandler {
     private final ObjectMapper objectMapper;
     private final WarehouseProjectionService warehouseProjectionService;
 
-    @KafkaListener(topics = "warehouse-events", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "branch-events", groupId = "branch-events-user")
     public void consume(String message) {
         try {
             WarehouseEventDto event = objectMapper.readValue(message, WarehouseEventDto.class);
-            warehouseProjectionService.updateOrCreate(event);
+            warehouseProjectionService.apply(event);
         } catch (Exception e) {
             log.error("Failed to process Kafka message: {}", message, e);
         }
-    }
-
-    private void handleEvent(WarehouseEventDto event) {
-        // 실제 처리 로직
-        log.info("Processing event logic for branch: {}", event.getName());
     }
 }

@@ -1,6 +1,7 @@
 package com.sampoom.user.api.agency.entity;
 
 
+import com.sampoom.user.common.entity.VendorStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -32,7 +33,7 @@ public class AgencyProjection {
     private Long agencyId;          // 원본 PK
 
     @Column(nullable = false, unique = true, length = 20)
-    private String agencyCode;          // 원본 PK
+    private String agencyCode;
 
     @Column(nullable = false, length = 100)
     private String name;
@@ -59,6 +60,7 @@ public class AgencyProjection {
     private UUID lastEventId;
 
     private OffsetDateTime sourceUpdatedAt;
+    
     @Column(nullable = false)
     private OffsetDateTime updatedAt;
 
@@ -66,6 +68,7 @@ public class AgencyProjection {
     void onCreate() {
         if (updatedAt == null) updatedAt = OffsetDateTime.now();
         if (version == null) version = 0L;
+        if (deleted == null) deleted = false;
     }
 
     @PreUpdate

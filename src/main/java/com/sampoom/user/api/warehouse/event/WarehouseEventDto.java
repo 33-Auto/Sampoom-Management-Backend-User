@@ -1,20 +1,33 @@
 package com.sampoom.user.api.warehouse.event;
 
-import com.sampoom.user.api.warehouse.entity.WarehouseStatus;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.sampoom.user.common.entity.BranchStatus;
+import lombok.*;
 
 import java.time.OffsetDateTime;
 
 @Getter
-@Setter
-@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class WarehouseEventDto {
-    private Long id;
-    private String name;
-    private String address;
-    private WarehouseStatus status;
-    private Long version;
-    private OffsetDateTime sourceUpdatedAt;
+    private String eventId;       // UUID (고유 이벤트 ID)
+    private String eventType;     // "BranchCreated", "BranchUpdated", "BranchDeleted"
+    private Long version;         // Branch 엔티티의 @Version 값
+    private String occurredAt;    // ISO-8601 시각 문자열
+    private Payload payload;      // 실제 데이터 (지점 정보)
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Payload {
+        private Long branchId;
+        private String branchCode;
+        private String branchName;
+        private String address;
+        private Double latitude;
+        private Double longitude;
+        private String status;       // ACTIVE / INACTIVE 등
+        private Boolean deleted;     // 논리삭제 여부
+    }
 }

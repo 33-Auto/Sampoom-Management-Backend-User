@@ -1,9 +1,9 @@
 package com.sampoom.user.api.factory.service;
 
 import com.sampoom.user.api.factory.entity.FactoryProjection;
-import com.sampoom.user.api.factory.entity.FactoryStatus;
 import com.sampoom.user.api.factory.event.FactoryEvent;
 import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
+import com.sampoom.user.common.entity.BranchStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +19,7 @@ public class FactoryProjectionService {
 
     @Transactional
     public void apply(FactoryEvent e) {
-        final Long factoryId   = e.getPayload().getFactoryId();
+        final Long factoryId   = e.getPayload().getBranchId();
         final Long incomingVer = nvl(e.getVersion(), 0L);
 
         FactoryProjection fp = repo.findByFactoryId(factoryId).orElse(null);
@@ -32,11 +32,11 @@ public class FactoryProjectionService {
         if (fp != null && incomingVer <= nvl(fp.getVersion(), 0L)) return;
 
         switch (e.getEventType()) {
-            case "FactoryCreated":
-            case "FactoryUpdated":
+            case "BranchCreated":
+            case "BranchUpdated":
                 upsert(fp, e, incomingVer);
                 break;
-            case "FactoryDeleted":
+            case "BranchDeleted":
                 softDelete(fp, e, incomingVer);
                 break;
             default:
@@ -50,21 +50,27 @@ public class FactoryProjectionService {
 
         FactoryProjection next = (fp == null)
                 ? FactoryProjection.builder()
-                .factoryId(p.getFactoryId())
-                .name(p.getName())
+                .factoryId(p.getBranchId())
+                .branchCode(p.getBranchCode())
+                .name(p.getBranchName())
                 .address(p.getAddress())
+                .latitude(p.getLatitude())
+                .longitude(p.getLongitude())
                 .status(parseStatus(p.getStatus()))
+                .deleted(p.getDeleted())
                 .version(ver)
                 .lastEventId(parseUuid(e.getEventId()))
-                .deleted(p.getDeleted())
                 .sourceUpdatedAt(parseOffset(e.getOccurredAt()))
-                .updatedAt(OffsetDateTime.now())
                 .build()
                 : fp.toBuilder()
                 // fp의 id, factoryId 등은 보존됨(toBuilder가 복사)
-                .name(p.getName())
+                .branchCode(p.getBranchCode())
+                .name(p.getBranchName())
                 .address(p.getAddress())
+                .latitude(p.getLatitude())
+                .longitude(p.getLongitude())
                 .status(parseStatus(p.getStatus()))
+                .deleted(p.getDeleted())
                 .version(ver)
                 .lastEventId(parseUuid(e.getEventId()))
                 .deleted(p.getDeleted())
@@ -84,8 +90,8 @@ public class FactoryProjectionService {
         FactoryProjection next = fp.toBuilder()
                 .version(ver)
                 .lastEventId(parseUuid(e.getEventId()))
-                .deleted(p.getDeleted())
-                .status(parseStatus(p.getStatus()))
+                .deleted(true)
+                .status(BranchStatus.INACTIVE)
                 .sourceUpdatedAt(parseOffset(e.getOccurredAt()))
                 .updatedAt(OffsetDateTime.now())
                 .build();
@@ -93,10 +99,10 @@ public class FactoryProjectionService {
         repo.save(next);
     }
 
-    private FactoryStatus parseStatus(String s) {
+    private BranchStatus parseStatus(String s) {
         // 안전 변환 (Null/이상값 대비)
-        if (s == null) return FactoryStatus.INACTIVE;
-        return FactoryStatus.valueOf(s);
+        if (s == null) return BranchStatus.INACTIVE;
+        return BranchStatus.valueOf(s);
     }
 
     private UUID parseUuid(String s) {

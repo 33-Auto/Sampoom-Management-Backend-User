@@ -15,7 +15,7 @@ public class FactoryEventHandler {
     private final ObjectMapper objectMapper;
     private final FactoryProjectionService factoryProjectionService;
 
-    @KafkaListener(topics = "factory-events", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "factory-branch-events", groupId = "factory-branch-events-user2")
     public void handle(String message) {
         try {
             FactoryEvent evt = objectMapper.readValue(message, FactoryEvent.class);
