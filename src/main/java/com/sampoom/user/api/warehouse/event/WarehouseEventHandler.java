@@ -14,7 +14,7 @@ public class WarehouseEventHandler {
     private final ObjectMapper objectMapper;
     private final WarehouseProjectionService warehouseProjectionService;
 
-    @KafkaListener(topics = "branch-events", groupId = "branch-events-user")
+    @KafkaListener(topics = "branch-events", groupId = "branch-events-users")
     public void consume(String message) {
         try {
             WarehouseEventDto event = objectMapper.readValue(message, WarehouseEventDto.class);
