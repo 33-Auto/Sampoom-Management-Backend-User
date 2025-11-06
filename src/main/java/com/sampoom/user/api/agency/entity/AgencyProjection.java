@@ -31,24 +31,32 @@ public class AgencyProjection {
     @Column(name = "agency_id", nullable = false)
     private Long agencyId;          // 원본 PK
 
-    @Column(nullable = false)
-    private String name;
+    @Column(nullable = false, unique = true, length = 20)
+    private String agencyCode;          // 원본 PK
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
+    private String agencyName;
+
+    private String ceoName;
     private String address;
 
-    @Column(nullable = false, length = 20)
-    private String status;          // ACTIVE / INACTIVE
+    private Double latitude;
+    private Double longitude;
+
+    private String businessNumber;
+
+    @Enumerated(EnumType.STRING)
+    private VendorStatus status;          // ACTIVE / INACTIVE
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean deleted = false;
 
     @Column(nullable = false)
     private Long version;
 
     @Column(name = "last_event_id")
     private UUID lastEventId;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean deleted = false;
 
     private OffsetDateTime sourceUpdatedAt;
     @Column(nullable = false)
@@ -63,5 +71,10 @@ public class AgencyProjection {
     @PreUpdate
     void onUpdate() {
         updatedAt = OffsetDateTime.now();
+    }
+
+    // 거래처 비활성화
+    public void deactivate() {
+        this.status = VendorStatus.INACTIVE;
     }
 }
