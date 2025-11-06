@@ -46,11 +46,12 @@ public class AgencyProjectionService {
 
         // 이벤트 유형별 처리
         switch (event.getEventType()) {
-            case "AgencyCreated":
-            case "AgencyUpdated":
+            case "VendorCreated":
+
+            case "VendorUpdated":
                 updater.upsert(existing, event);
                 break;
-            case "AgencyDeleted":
+            case "VendorDeleted":
                 updater.softDelete(existing, event);
                 break;
             default:
