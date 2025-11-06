@@ -36,8 +36,6 @@ public class WarehouseProjection {
     private Double latitude;
     private Double longitude;
 
-    private String businessNumber;
-
     @Enumerated(EnumType.STRING)
     private BranchStatus status;        // ACTIVE/INACTIVE 등
 

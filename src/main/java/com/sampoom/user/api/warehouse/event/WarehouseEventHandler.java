@@ -23,9 +23,4 @@ public class WarehouseEventHandler {
             log.error("Failed to process Kafka message: {}", message, e);
         }
     }
-
-    private void handleEvent(WarehouseEventDto event) {
-        // 실제 처리 로직
-        log.info("Processing event logic for branch: {}", event.getEventType());
-    }
 }
