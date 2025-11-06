@@ -1,8 +1,10 @@
 package com.sampoom.user.api.agency.service;
 
 import com.sampoom.user.api.agency.entity.AgencyProjection;
+import com.sampoom.user.api.agency.entity.VendorStatus;
 import com.sampoom.user.api.agency.event.AgencyEvent;
 import com.sampoom.user.api.agency.repository.AgencyProjectionRepository;
+import com.sampoom.user.common.exception.InternalServerErrorException;
 import com.sampoom.user.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -25,24 +27,34 @@ public class AgencyProjectionUpdater {
         AgencyProjection next = (existing == null)
                 ? AgencyProjection.builder()
                 .agencyId(p.getAgencyId())
-                .name(p.getName())
+                .agencyCode(p.getAgencyCode())
+                .agencyName(p.getAgencyName())
                 .address(p.getAddress())
+                .latitude(p.getLatitude())
+                .longitude(p.getLongitude())
+                .businessNumber(p.getBusinessNumber())
+                .ceoName(p.getCeoName())
                 .status(p.getStatus())
+                .deleted(p.getDeleted())
                 .version(event.getVersion())
                 .lastEventId(UUID.fromString(event.getEventId()))
-                .deleted(p.getDeleted())
                 .sourceUpdatedAt(OffsetDateTime.parse(event.getOccurredAt()))
-                .updatedAt(now)
                 .build()
                 : existing.toBuilder()
-                .name(p.getName())
+                .agencyId(p.getAgencyId())
+                .agencyCode(p.getAgencyCode())
+                .agencyName(p.getAgencyName())
                 .address(p.getAddress())
+                .latitude(p.getLatitude())
+                .longitude(p.getLongitude())
+                .businessNumber(p.getBusinessNumber())
+                .ceoName(p.getCeoName())
                 .status(p.getStatus())
+                .deleted(p.getDeleted())
                 .version(event.getVersion())
                 .lastEventId(UUID.fromString(event.getEventId()))
                 .deleted(p.getDeleted())
                 .sourceUpdatedAt(OffsetDateTime.parse(event.getOccurredAt()))
-                .updatedAt(now)
                 .build();
 
         agencyProjectionRepository.save(next);
@@ -50,12 +62,13 @@ public class AgencyProjectionUpdater {
 
     public void softDelete(AgencyProjection existing, AgencyEvent event) {
         if (existing == null) return;
+        validateEvent(event);
         var now = OffsetDateTime.now();
         AgencyProjection next = existing.toBuilder()
                 .version(event.getVersion())
                 .lastEventId(UUID.fromString(event.getEventId()))
                 .deleted(true)
-                .status("INACTIVE")
+                .status(VendorStatus.INACTIVE)
                 .sourceUpdatedAt(OffsetDateTime.parse(event.getOccurredAt()))
                 .updatedAt(now)
                 .build();
@@ -68,6 +81,9 @@ public class AgencyProjectionUpdater {
             OffsetDateTime.parse(event.getOccurredAt());
         } catch (IllegalArgumentException | DateTimeParseException e) {
             throw new IllegalArgumentException(ErrorStatus.INVALID_EVENT_FORMAT.getMessage(), e);
+        }
+        if (event.getPayload() == null || event.getPayload().getAgencyId() == null) {
+            throw new IllegalArgumentException(ErrorStatus.INVALID_EVENT_FORMAT.getMessage());
         }
     }
 }
