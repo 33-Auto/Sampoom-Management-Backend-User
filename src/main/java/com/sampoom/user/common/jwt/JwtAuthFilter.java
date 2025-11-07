@@ -3,12 +3,10 @@ package com.sampoom.user.common.jwt;
 import com.sampoom.user.common.config.security.CustomAuthEntryPoint;
 import com.sampoom.user.common.entity.Role;
 import com.sampoom.user.common.exception.CustomAuthenticationException;
-import com.sampoom.user.common.exception.UnauthorizedException;
 import com.sampoom.user.common.response.ErrorStatus;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -35,14 +33,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-        SecurityContextHolder.clearContext();
         String path = request.getRequestURI();
         if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.equals("/swagger-ui.html")) {
             filterChain.doFilter(request, response);
             return;
         }
         try {
-            String accessToken = resolveAccessToken(request);
+            String accessToken = jwtProvider.resolveAccessToken(request);
             if (accessToken == null) {
                 filterChain.doFilter(request, response);
                 return;
@@ -125,22 +122,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             customAuthEntryPoint.commence(request, response,
                     new CustomAuthenticationException(ErrorStatus.INVALID_TOKEN));
         }
-    }
-
-    private String resolveAccessToken(HttpServletRequest request) {
-        // 쿠키에서 ACCESS_TOKEN 찾기
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("ACCESS_TOKEN".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        // Bearer 방식일 때
-        String header = request.getHeader("Authorization");
-        if (header == null) return null;
-        if (!header.startsWith("Bearer "))
-            throw new UnauthorizedException(ErrorStatus.INVALID_TOKEN);
-        return header.substring(7); // "Bearer " 제거
     }
 }

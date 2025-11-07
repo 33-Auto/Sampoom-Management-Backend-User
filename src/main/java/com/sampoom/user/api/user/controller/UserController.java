@@ -37,7 +37,6 @@ public class UserController {
     // Auth 통신용(Feign)
     @Operation(summary = "[Not Client API] 회원가입 User 서비스 내부 통신용", description = "[Not Client API] 회원가입을 통해 프로필 정보를 담은 유저를 생성합니다.")
     @PostMapping("/internal/profile")
-    @PreAuthorize("hasAuthority('SVC_AUTH')")   // 내부 통신용 헤더
     public ResponseEntity<Void> createProfile(@Valid @RequestBody SignupUser req) {
         userService.createProfile(req);
         return ResponseEntity.ok().build();
@@ -46,7 +45,6 @@ public class UserController {
     // Auth 통신용(Feign)
     @Operation(summary = "[Not Client API] 로그인 User 서비스 내부 통신용", description = "[Not Client API] 로그인을 통해 유저의 조직 정합성을 검증합니다.")
     @PostMapping("/internal/verify")
-    @PreAuthorize("hasAuthority('SVC_AUTH')")   // 내부 통신용 헤더
     public ResponseEntity<LoginResponse> verifyWorkspace(@Valid @RequestBody LoginRequest req) {
         LoginResponse res = userService.verifyWorkspace(req);
         return ResponseEntity.ok(res);
@@ -55,7 +53,6 @@ public class UserController {
     // AccessToken 내 userId로 profile 조회
     @Operation(summary = "로그인 유저 프로필 정보 조회", description = "토큰으로 로그인한 유저의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<UserLoginResponse>> getMyProfile(
             @RequestParam Workspace workspace,
             Authentication authentication
@@ -77,7 +74,6 @@ public class UserController {
             <br> **organizationId**: 조직 ID (**workspace 필수**, 미지정 시 조직 내 전체 조회)
             """)
     @GetMapping("/info")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse<UserInfoListResponse>> getUsersInfo(
             @ParameterObject
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC)
@@ -92,7 +88,6 @@ public class UserController {
     // 회원 수정
     @Operation(summary = "로그인 유저 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
     @PatchMapping("/profile")
-    @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<UserUpdateResponse>> updateMyProfile(
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs
@@ -109,7 +104,7 @@ public class UserController {
     """)
 
     @PatchMapping("/profile/{userId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")    // 내부 통신용 헤더 때문에 명시적 작성
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<UserUpdateAdminResponse>> updateUserProfile(
             Authentication authentication,
             @PathVariable Long userId,

@@ -24,7 +24,7 @@ public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
     @Column(nullable = false)
     private LocalDateTime startedAt;  // 입사일
 
-    private LocalDateTime endedAt;  // 퇴사일 (nullable)
+    private LocalDateTime endedAt;  // 근무종료일 (nullable)
 
     @Column(nullable = false)
     private Long userId;  // 직원 ID
