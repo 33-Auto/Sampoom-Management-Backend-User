@@ -80,13 +80,12 @@ public class AuthUserProjectionService {
                     .userId(p.getUserId())
                     .email(p.getEmail())
                     .role(p.getRole())
-                    .version(p.getVersion())
                     .lastEventId(event.getEventId())
                     .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
+                    .version(p.getVersion())
                     .build();
             repo.save(projection);
         }
-
         log.info("[AuthUserProjectionService] Warmup 완료 ({}건)", repo.count());
     }
 

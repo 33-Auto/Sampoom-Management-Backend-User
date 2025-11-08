@@ -27,8 +27,6 @@ public class AuthUserEvent {
         @NotNull
         private Role role;
 
-        private Boolean deleted;
-
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private LocalDateTime deletedAt;

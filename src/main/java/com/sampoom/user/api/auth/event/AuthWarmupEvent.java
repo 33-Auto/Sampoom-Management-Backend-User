@@ -17,7 +17,7 @@ public class AuthWarmupEvent {
     private String eventId;
     private String eventType; // 항상 "AuthSystemWarmup"
     private String occurredAt;
-    private List<AuthUserEvent.Payload> payload;
+    private List<AuthUserPayload> payload;
 
     @Getter
     @Builder
