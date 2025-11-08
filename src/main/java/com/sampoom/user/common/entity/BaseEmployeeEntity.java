@@ -51,6 +51,7 @@ public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
             }
             case ACTIVE -> {
                 this.startedAt = LocalDateTime.now();
+                this.endedAt = null;
                 reactive();
             }
             case LEAVE -> this.endedAt = LocalDateTime.now();

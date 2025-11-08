@@ -56,14 +56,14 @@ public class AuthUserProjectionService {
                 .email(p.getEmail())
                 .role(p.getRole())
                 .lastEventId(e.getEventId())
-                .sourceUpdatedAt(parseOffset(String.valueOf(p.getCreatedAt())))
+                .sourceUpdatedAt(p.getCreatedAt() != null ? parseOffset(p.getCreatedAt().toString()) : null)
                 .version(ver)
                 .build()
                 : existing.toBuilder()
                 .email(p.getEmail())
                 .role(p.getRole())
                 .lastEventId(e.getEventId())
-                .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
+                .sourceUpdatedAt(p.getUpdatedAt() != null ? parseOffset(p.getUpdatedAt().toString()) : null)
                 .version(ver)
                 .build();
         repo.save(next);

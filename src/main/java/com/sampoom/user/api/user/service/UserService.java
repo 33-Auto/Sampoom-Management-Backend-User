@@ -143,17 +143,17 @@ public class UserService {
         if (req.getWorkspace() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
-            boolean valid = switch (req.getWorkspace()) {
-                case FACTORY -> factoryEmpRepo.existsByUserId(req.getUserId());
-                case WAREHOUSE -> warehouseEmpRepo.existsByUserId(req.getUserId());
-                case AGENCY -> agencyEmpRepo.existsByUserId(req.getUserId());
-            };
+        boolean valid = switch (req.getWorkspace()) {
+            case FACTORY -> factoryEmpRepo.existsByUserId(req.getUserId());
+            case WAREHOUSE -> warehouseEmpRepo.existsByUserId(req.getUserId());
+            case AGENCY -> agencyEmpRepo.existsByUserId(req.getUserId());
+        };
 
-            if (!valid) {
-                throw new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_WORKSPACE);
-            }
+        if (!valid) {
+            throw new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_WORKSPACE);
+        }
 
-            return LoginResponse.builder()
+        return LoginResponse.builder()
                 .userId(req.getUserId())
                 .workspace(req.getWorkspace())
                 .valid(true)
@@ -168,7 +168,7 @@ public class UserService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
         AuthUserProjection authUser = authUserRepo.findByUserId(userId)
-                .orElseThrow(()-> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
         switch (workspace) {
             case FACTORY -> {
@@ -264,7 +264,7 @@ public class UserService {
         }
         Position newPosition = req.getPosition();
         User user = userRepo.findById(userId)
-                .orElseThrow(()->new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
         switch (workspace) {
             case FACTORY -> {
@@ -322,6 +322,14 @@ public class UserService {
                     .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         };
+        if (emp.getStatus() == newEmployeeStatus) {
+            return EmployeeStatusResponse.builder()
+                    .userId(emp.getUserId())
+                    .userName(user.getUserName())
+                    .workspace(workspace)
+                    .employeeStatus(emp.getStatus())
+                    .build();
+        }
         emp.onUpdateStatus(newEmployeeStatus);
 
         // version/updatedAt 최신화
