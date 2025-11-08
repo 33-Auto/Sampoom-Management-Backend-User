@@ -21,7 +21,6 @@ import java.time.OffsetDateTime;
 public class AuthUserProjection extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
     private String email;

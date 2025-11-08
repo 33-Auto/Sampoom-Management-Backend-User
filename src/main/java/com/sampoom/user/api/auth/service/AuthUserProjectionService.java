@@ -26,7 +26,7 @@ public class AuthUserProjectionService {
         final Long userId = e.getPayload().getUserId();
         final Long incomingVer = nvl(e.getVersion(), 0L);
 
-        AuthUserProjection projection = repo.findById(userId).orElse(null);
+        AuthUserProjection projection = repo.findByUserIdIncludingDeleted(userId).orElse(null);
 
         // 멱등 처리: 같은 이벤트 두 번 들어오면 무시
         if (projection != null && e.getEventId() != null && projection.getLastEventId() != null) {
