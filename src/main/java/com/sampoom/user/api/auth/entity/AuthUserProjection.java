@@ -13,13 +13,11 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "auth_user_projection")
-@SQLRestriction("deleted = false")  // 추가 필수
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class AuthUserProjection extends BaseTimeEntity {
-
     @Id
     private Long userId;
 
@@ -29,10 +27,9 @@ public class AuthUserProjection extends BaseTimeEntity {
     private Role role;
 
     private String lastEventId;
+
+    @Column(nullable=false)
     private Long version;
 
     private OffsetDateTime sourceUpdatedAt;
-
-    private Boolean deleted = false;  // 기본값 필수
-    private OffsetDateTime deletedAt;
 }

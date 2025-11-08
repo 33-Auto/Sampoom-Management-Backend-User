@@ -1,5 +1,6 @@
 package com.sampoom.user.api.user.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sampoom.user.api.agency.entity.AgencyEmployee;
 import com.sampoom.user.api.agency.entity.AgencyProjection;
 import com.sampoom.user.api.agency.repository.AgencyEmployeeRepository;
@@ -15,28 +16,38 @@ import com.sampoom.user.api.user.dto.request.UserUpdateAdminRequest;
 import com.sampoom.user.api.user.dto.response.EmployeeStatusResponse;
 import com.sampoom.user.api.user.dto.response.UserLoginResponse;
 import com.sampoom.user.api.user.dto.response.UserUpdateAdminResponse;
+import com.sampoom.user.api.user.event.EmployeeUpdatedEvent;
 import com.sampoom.user.api.user.internal.dto.LoginRequest;
 import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
+import com.sampoom.user.api.user.outbox.OutboxEvent;
+import com.sampoom.user.api.user.outbox.OutboxRepository;
 import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
 import com.sampoom.user.api.warehouse.repository.WarehouseEmployeeRepository;
 import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
+import com.sampoom.user.common.entity.BaseEmployeeEntity;
 import com.sampoom.user.common.entity.EmployeeStatus;
 import com.sampoom.user.common.entity.Position;
 import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.exception.BadRequestException;
 import com.sampoom.user.common.exception.ConflictException;
+import com.sampoom.user.common.exception.InternalServerErrorException;
 import com.sampoom.user.common.exception.NotFoundException;
 import com.sampoom.user.common.response.ErrorStatus;
 import com.sampoom.user.api.user.dto.request.UserUpdateRequest;
 import com.sampoom.user.api.user.dto.response.UserUpdateResponse;
 import com.sampoom.user.api.user.entity.User;
 import com.sampoom.user.api.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -51,6 +62,12 @@ public class UserService {
     private final WarehouseEmployeeRepository warehouseEmpRepo;
     private final AgencyProjectionRepository agencyRepo;
     private final AgencyEmployeeRepository agencyEmpRepo;
+
+    private final ObjectMapper objectMapper;
+    private final OutboxRepository outboxRepo;
+
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     // Auth Feign
     @Transactional
@@ -292,45 +309,55 @@ public class UserService {
         if (userId == null || workspace == null || req == null || req.getEmployeeStatus() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         }
-        EmployeeStatus newEmployeeStatus = req.getEmployeeStatus();
         User user = userRepo.findById(userId)
-                .orElseThrow(()->new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
+        EmployeeStatus newEmployeeStatus = req.getEmployeeStatus();
 
-        switch (workspace) {
-            case FACTORY -> {
-                FactoryEmployee emp = factoryEmpRepo.findByUserId(userId)
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_EMPLOYEE));
-                emp.updateEmployeeStatus(newEmployeeStatus);
-                return EmployeeStatusResponse.builder()
-                        .userId(emp.getUserId())
-                        .userName(user.getUserName())
-                        .workspace(workspace)
-                        .employeeStatus(emp.getStatus())
-                        .build();
-            }
-            case WAREHOUSE -> {
-                WarehouseEmployee emp = warehouseEmpRepo.findByUserId(userId)
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_WAREHOUSE_EMPLOYEE));
-                emp.updateEmployeeStatus(newEmployeeStatus);
-                return EmployeeStatusResponse.builder()
-                        .userId(emp.getUserId())
-                        .userName(user.getUserName())
-                        .workspace(workspace)
-                        .employeeStatus(emp.getStatus())
-                        .build();
-            }
-            case AGENCY -> {
-                AgencyEmployee emp = agencyEmpRepo.findByUserId(userId)
-                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
-                emp.updateEmployeeStatus(newEmployeeStatus);
-                return EmployeeStatusResponse.builder()
-                        .userId(emp.getUserId())
-                        .userName(user.getUserName())
-                        .workspace(workspace)
-                        .employeeStatus(emp.getStatus())
-                        .build();
-            }
+        BaseEmployeeEntity emp = switch (workspace) {
+            case FACTORY -> factoryEmpRepo.findByUserId(userId)
+                    .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_EMPLOYEE));
+            case WAREHOUSE -> warehouseEmpRepo.findByUserId(userId)
+                    .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_WAREHOUSE_EMPLOYEE));
+            case AGENCY -> agencyEmpRepo.findByUserId(userId)
+                    .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
+        };
+        emp.onUpdateStatus(newEmployeeStatus);
+
+        // version/updatedAt 최신화
+        entityManager.flush();
+
+        // 이벤트 발행
+        EmployeeUpdatedEvent evt = EmployeeUpdatedEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType("EmployeeUpdated")
+                .occurredAt(OffsetDateTime.now().toString())
+                .version(emp.getVersion())
+                .payload(EmployeeUpdatedEvent.Payload.builder()
+                        .userId(userId)
+                        .workspace(workspace)
+                        .employeeStatus(emp.getStatus())
+                        .updatedAt(emp.getUpdatedAt())
+                        .build())
+                .build();
+        try {
+            String payloadJson = objectMapper.writeValueAsString(evt);
+            outboxRepo.save(OutboxEvent.builder()
+                    .eventType(evt.getEventType())
+                    .aggregateId(emp.getUserId())
+                    .payload(payloadJson)
+                    .published(false)
+                    .build());
+
+        } catch (Exception e) {
+            throw new InternalServerErrorException(ErrorStatus.OUTBOX_SERIALIZATION_ERROR);
         }
+
+        return EmployeeStatusResponse.builder()
+                .userId(emp.getUserId())
+                .userName(user.getUserName())
+                .workspace(workspace)
+                .employeeStatus(emp.getStatus())
+                .build();
     }
 }
