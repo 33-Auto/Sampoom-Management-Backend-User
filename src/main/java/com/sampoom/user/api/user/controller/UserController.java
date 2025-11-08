@@ -103,6 +103,10 @@ public class UserController {
     @Operation(summary = "관리자 권한 프로필 정보 수정", description = """
     관리자 권한으로 유저ID와 조직을 통해 직원의 조직 정보를 수정합니다.
     <br><br> 해당 회원의 userId 를 입력하고 알맞는 조직을 선택하세요.
+    <br> 변경할 Role 값을 요청으로 보내세요.
+    <br><br>***Role***
+    <br>USER: 일반
+    <br>ADMIN: 관리자
     """)
 
     @PatchMapping("/profile/{userId}")
@@ -121,9 +125,14 @@ public class UserController {
     }
 
     // 관리자 권한 회원 비활성화
-    @Operation(summary = "관리자 권한 직원 비활성화", description = """
-    관리자 권한으로 유저ID와 조직을 통해 직원을 비활성화합니다.
+    @Operation(summary = "관리자 권한 직원 상태 변경", description = """
+    관리자 권한으로 유저ID와 조직을 통해 직원의 상태를 변경합니다.
     <br><br> 해당 회원의 userId 를 입력하고 알맞는 조직을 선택하세요.
+    <br> 변경할 EmployeeStatus 값을 요청으로 보내세요.
+    <br><br>***EmployeeStatus***
+    <br>ACTIVE: 재직
+    <br>LEAVE: 휴직 (비활성화)
+    <br>RETIRED: 퇴직 (비활성화)
     """)
 
     @PatchMapping("/status/{userId}")
