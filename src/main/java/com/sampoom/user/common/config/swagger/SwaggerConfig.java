@@ -23,7 +23,7 @@ public class SwaggerConfig {
                 .name("Authorization");
 
         Server localServer = new Server()
-                .url("http://localhost:8080")
+                .url("http://localhost:8082")
                 .description("로컬 서버");
 
         Server prodServer = new Server()

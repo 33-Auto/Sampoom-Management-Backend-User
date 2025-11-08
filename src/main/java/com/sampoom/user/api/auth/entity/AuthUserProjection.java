@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.OffsetDateTime;
+
 @Entity
 @Table(name = "auth_user_projection")
 @Getter
@@ -29,7 +31,8 @@ public class AuthUserProjection extends BaseTimeEntity {
     private String lastEventId;
     private Long version;
 
-    public void updateFromPayload(Role role) {
-        this.role = role;
-    }
+    private OffsetDateTime sourceUpdatedAt;
+
+    private boolean deleted;
+    private OffsetDateTime deletedAt;
 }

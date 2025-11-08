@@ -10,16 +10,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-public class AuthUserSignedUpEvent {
-    @NotNull
+public class AuthUserEvent {
     private String eventId;
-    @NotNull
-    private String eventType;      // "UserSignedUp"
-    @Builder.Default
-    private Long version=1L;
-    @NotNull
-    private String occurredAt;     // ISO-8601
-    @NotNull
+    private String eventType;      // "AuthUserSignedUp","AuthUserUpdated"
+    private Long version;
+    private String occurredAt;
     private Payload payload;
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
@@ -31,7 +26,11 @@ public class AuthUserSignedUpEvent {
         private String email;
         @NotNull
         private Role role;
-        @NotNull
+
+        private boolean deleted;
+
         private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+        private LocalDateTime deletedAt;
     }
 }

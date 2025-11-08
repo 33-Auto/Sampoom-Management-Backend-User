@@ -20,11 +20,12 @@ public class AuthEventHandler {
     private final ObjectMapper objectMapper;
     private final AuthUserProjectionService authUserProjectionService;
 
-    @KafkaListener(topics = "${app.topics.auth-events:auth-events}",groupId = "auth-events-user")
+    @KafkaListener(topics = "auth-events",groupId = "auth-events-users")
     public void authEventHandle(String message, Acknowledgment ack) {
         try {
-            authUserProjectionService.applyAuthEvent(message);
-            ack.acknowledge(); // 트랜잭션 밖에서 호출
+            AuthUserEvent event = objectMapper.readValue(message, AuthUserEvent.class);
+
+            authUserProjectionService.apply(event);
         }
         catch (JsonProcessingException ex) {
             log.error("[AuthUserEventHandler] 이벤트 포맷 오류: {}", message, ex);
@@ -39,6 +40,7 @@ public class AuthEventHandler {
         }
         catch (Exception e) {
             log.error("[AuthUserEventHandler] Kafka 이벤트 처리 실패", e);
+            ack.acknowledge();
             throw new InternalServerErrorException(ErrorStatus.EVENT_PROCESSING_FAILED);
         }
     }

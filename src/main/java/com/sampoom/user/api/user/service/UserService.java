@@ -239,7 +239,7 @@ public class UserService {
 
     @Transactional
     public UserUpdateAdminResponse updateUserProfile(Long userId, Workspace workspace, UserUpdateAdminRequest req) {
-        if (userId == null || workspace == null || req.getPosition() == null) {
+        if (userId == null || workspace == null || req == null || req.getPosition() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         }
         Position newPosition = req.getPosition();
@@ -250,7 +250,7 @@ public class UserService {
             case FACTORY -> {
                 FactoryEmployee emp = factoryEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_EMPLOYEE));
-                emp.setPosition(newPosition);
+                emp.updatePosition(newPosition);
                 return UserUpdateAdminResponse.builder()
                         .userId(emp.getUserId())
                         .userName(user.getUserName())
@@ -261,7 +261,7 @@ public class UserService {
             case WAREHOUSE -> {
                 WarehouseEmployee emp = warehouseEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_WAREHOUSE_EMPLOYEE));
-                emp.setPosition(newPosition);
+                emp.updatePosition(newPosition);
                 return UserUpdateAdminResponse.builder()
                         .userId(emp.getUserId())
                         .userName(user.getUserName())
@@ -272,7 +272,7 @@ public class UserService {
             case AGENCY -> {
                 AgencyEmployee emp = agencyEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
-                emp.setPosition(newPosition);
+                emp.updatePosition(newPosition);
                 return UserUpdateAdminResponse.builder()
                         .userId(emp.getUserId())
                         .userName(user.getUserName())
