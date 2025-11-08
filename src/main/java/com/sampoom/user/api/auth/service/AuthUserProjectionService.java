@@ -84,8 +84,8 @@ public class AuthUserProjectionService {
                 .version(ver)
                 .lastEventId(e.getEventId())
                 .deleted(true)
-                .deletedAt(p.getDeletedAt() != null ? p.getDeletedAt().atOffset(ZoneOffset.UTC) : null)
-                .sourceUpdatedAt(p.getUpdatedAt() != null ? p.getUpdatedAt().atOffset(ZoneOffset.UTC) : null)
+                .deletedAt(p.getDeletedAt() != null ? p.getDeletedAt().atOffset(ZoneOffset.ofHours(9)) : null)
+                .sourceUpdatedAt(p.getUpdatedAt() != null ? p.getUpdatedAt().atOffset(ZoneOffset.ofHours(9)) : null)
                 .build();
 
         repo.save(next);

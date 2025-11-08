@@ -10,7 +10,9 @@ import com.sampoom.user.api.factory.entity.FactoryEmployee;
 import com.sampoom.user.api.factory.entity.FactoryProjection;
 import com.sampoom.user.api.factory.repository.FactoryEmployeeRepository;
 import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
+import com.sampoom.user.api.user.dto.request.EmployeeStatusRequest;
 import com.sampoom.user.api.user.dto.request.UserUpdateAdminRequest;
+import com.sampoom.user.api.user.dto.response.EmployeeStatusResponse;
 import com.sampoom.user.api.user.dto.response.UserLoginResponse;
 import com.sampoom.user.api.user.dto.response.UserUpdateAdminResponse;
 import com.sampoom.user.api.user.internal.dto.LoginRequest;
@@ -20,6 +22,7 @@ import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
 import com.sampoom.user.api.warehouse.repository.WarehouseEmployeeRepository;
 import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
+import com.sampoom.user.common.entity.EmployeeStatus;
 import com.sampoom.user.common.entity.Position;
 import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.exception.BadRequestException;
@@ -278,6 +281,53 @@ public class UserService {
                         .userName(user.getUserName())
                         .workspace(workspace)
                         .position(emp.getPosition())
+                        .build();
+            }
+            default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
+        }
+    }
+
+    @Transactional
+    public EmployeeStatusResponse updateEmployeeStatus(Long userId, Workspace workspace, EmployeeStatusRequest req) {
+        if (userId == null || workspace == null || req == null || req.getEmployeeStatus() == null) {
+            throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
+        }
+        EmployeeStatus newEmployeeStatus = req.getEmployeeStatus();
+        User user = userRepo.findById(userId)
+                .orElseThrow(()->new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
+
+        switch (workspace) {
+            case FACTORY -> {
+                FactoryEmployee emp = factoryEmpRepo.findByUserId(userId)
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_EMPLOYEE));
+                emp.updateEmployeeStatus(newEmployeeStatus);
+                return EmployeeStatusResponse.builder()
+                        .userId(emp.getUserId())
+                        .userName(user.getUserName())
+                        .workspace(workspace)
+                        .employeeStatus(emp.getStatus())
+                        .build();
+            }
+            case WAREHOUSE -> {
+                WarehouseEmployee emp = warehouseEmpRepo.findByUserId(userId)
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_WAREHOUSE_EMPLOYEE));
+                emp.updateEmployeeStatus(newEmployeeStatus);
+                return EmployeeStatusResponse.builder()
+                        .userId(emp.getUserId())
+                        .userName(user.getUserName())
+                        .workspace(workspace)
+                        .employeeStatus(emp.getStatus())
+                        .build();
+            }
+            case AGENCY -> {
+                AgencyEmployee emp = agencyEmpRepo.findByUserId(userId)
+                        .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
+                emp.updateEmployeeStatus(newEmployeeStatus);
+                return EmployeeStatusResponse.builder()
+                        .userId(emp.getUserId())
+                        .userName(user.getUserName())
+                        .workspace(workspace)
+                        .employeeStatus(emp.getStatus())
                         .build();
             }
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);

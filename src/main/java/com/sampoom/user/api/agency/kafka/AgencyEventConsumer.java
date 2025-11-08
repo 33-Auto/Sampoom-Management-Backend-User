@@ -21,15 +21,13 @@ public class AgencyEventConsumer {
 
     @KafkaListener(topics = "vendor-events", groupId = "vendor-events-users")
     @Transactional
-    public void consume(String message, Acknowledgment ack) {
+    public void consume(String message) {
         try {
             // JSON → 이벤트 변환
             AgencyEvent event = objectMapper.readValue(message, AgencyEvent.class);
             agencyProjectionService.apply(event);
-            ack.acknowledge();
         } catch (Exception e) {
             log.error("Kafka 이벤트 처리 실패", e);
-            ack.acknowledge();
             throw new RuntimeException(ErrorStatus.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
     }

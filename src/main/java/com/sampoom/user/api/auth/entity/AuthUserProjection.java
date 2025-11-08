@@ -7,11 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "auth_user_projection")
+@SQLRestriction("deleted = false")  // 추가 필수
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,7 +23,7 @@ public class AuthUserProjection extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
-    
+
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -32,6 +34,6 @@ public class AuthUserProjection extends BaseTimeEntity {
 
     private OffsetDateTime sourceUpdatedAt;
 
-    private boolean deleted;
+    private Boolean deleted = false;  // 기본값 필수
     private OffsetDateTime deletedAt;
 }

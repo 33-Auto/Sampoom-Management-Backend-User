@@ -26,6 +26,7 @@ public class AuthEventHandler {
             AuthUserEvent event = objectMapper.readValue(message, AuthUserEvent.class);
 
             authUserProjectionService.apply(event);
+            ack.acknowledge();
         }
         catch (JsonProcessingException ex) {
             log.error("[AuthUserEventHandler] 이벤트 포맷 오류: {}", message, ex);

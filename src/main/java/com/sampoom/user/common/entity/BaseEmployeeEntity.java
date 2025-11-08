@@ -45,13 +45,12 @@ public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
     public void setUserId(Long userId) {
         this.userId = userId;
     }
-
-    public void setPosition(Position position) {
-        this.position = position;
-    }
-
     // 더티 체킹
     public void updatePosition(Position newPosition) {
         this.position = newPosition;
+    }
+
+    public void updateEmployeeStatus(EmployeeStatus newEmployeeStatus){
+        this.status = newEmployeeStatus;
     }
 }
