@@ -51,7 +51,7 @@ public class SecurityConfig {
 //                    corsConfig.setAllowedOrigins(List.of("https://sampoom.store"
 //                            ,"https://samsam.autos"
 //                            ,"https://sampoom-management-frontend.vercel.app"
-//                            ,"http://localhost:8080"
+//                            ,"http://localhost:8082"
 //                            ,"http://localhost:3000"
 //                    ));
 //                    corsConfig.setAllowCredentials(true);

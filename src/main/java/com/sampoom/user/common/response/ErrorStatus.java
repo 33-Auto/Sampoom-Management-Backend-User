@@ -14,7 +14,7 @@ public enum ErrorStatus {
     BLANK_TOKEN(HttpStatus.BAD_REQUEST, "토큰 값은 공백이면 안됩니다.", 12400),
     NULL_TOKEN(HttpStatus.BAD_REQUEST, "토큰 값은 Null이면 안됩니다.", 12401),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", 11402),
-    INVALID_WORKSPACE_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 조직 타입입니다.", 11401),
+    INVALID_WORKSPACE_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 조직(workspace) 타입입니다.", 11401),
     BLANK_TOKEN_ROLE(HttpStatus.BAD_REQUEST,"토큰 내 권한 정보가 공백입니다.",12404),
     NULL_TOKEN_ROLE(HttpStatus.BAD_REQUEST,"토큰 내 권한 정보가 NULL입니다.",12405),
     INVALID_REQUEST_ORGID(HttpStatus.BAD_REQUEST,"workspace 없이 organizationID로만 요청할 수 없습니다.",11403),

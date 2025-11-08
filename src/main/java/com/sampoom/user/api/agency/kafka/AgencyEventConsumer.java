@@ -7,6 +7,7 @@ import com.sampoom.user.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,6 @@ public class AgencyEventConsumer {
         try {
             // JSON → 이벤트 변환
             AgencyEvent event = objectMapper.readValue(message, AgencyEvent.class);
-
             agencyProjectionService.apply(event);
         } catch (Exception e) {
             log.error("Kafka 이벤트 처리 실패", e);

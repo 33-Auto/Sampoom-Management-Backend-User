@@ -1,5 +1,6 @@
 package com.sampoom.user.api.user.controller;
 
+import com.sampoom.user.api.user.dto.request.EmployeeStatusRequest;
 import com.sampoom.user.api.user.dto.request.UserUpdateAdminRequest;
 import com.sampoom.user.api.user.dto.response.*;
 import com.sampoom.user.api.user.internal.dto.LoginRequest;
@@ -7,6 +8,7 @@ import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.api.user.service.UserInfoService;
 import com.sampoom.user.api.user.service.UserService;
+import com.sampoom.user.common.entity.EmployeeStatus;
 import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.response.ApiResponse;
 import com.sampoom.user.common.response.SuccessStatus;
@@ -37,7 +39,6 @@ public class UserController {
     // Auth 통신용(Feign)
     @Operation(summary = "[Not Client API] 회원가입 User 서비스 내부 통신용", description = "[Not Client API] 회원가입을 통해 프로필 정보를 담은 유저를 생성합니다.")
     @PostMapping("/internal/profile")
-    @PreAuthorize("hasAuthority('SVC_AUTH')")   // 내부 통신용 헤더
     public ResponseEntity<Void> createProfile(@Valid @RequestBody SignupUser req) {
         userService.createProfile(req);
         return ResponseEntity.ok().build();
@@ -46,7 +47,6 @@ public class UserController {
     // Auth 통신용(Feign)
     @Operation(summary = "[Not Client API] 로그인 User 서비스 내부 통신용", description = "[Not Client API] 로그인을 통해 유저의 조직 정합성을 검증합니다.")
     @PostMapping("/internal/verify")
-    @PreAuthorize("hasAuthority('SVC_AUTH')")   // 내부 통신용 헤더
     public ResponseEntity<LoginResponse> verifyWorkspace(@Valid @RequestBody LoginRequest req) {
         LoginResponse res = userService.verifyWorkspace(req);
         return ResponseEntity.ok(res);
@@ -55,7 +55,6 @@ public class UserController {
     // AccessToken 내 userId로 profile 조회
     @Operation(summary = "로그인 유저 프로필 정보 조회", description = "토큰으로 로그인한 유저의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<UserLoginResponse>> getMyProfile(
             @RequestParam Workspace workspace,
             Authentication authentication
@@ -77,7 +76,6 @@ public class UserController {
             <br> **organizationId**: 조직 ID (**workspace 필수**, 미지정 시 조직 내 전체 조회)
             """)
     @GetMapping("/info")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse<UserInfoListResponse>> getUsersInfo(
             @ParameterObject
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC)
@@ -92,7 +90,6 @@ public class UserController {
     // 회원 수정
     @Operation(summary = "로그인 유저 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
     @PatchMapping("/profile")
-    @PreAuthorize("hasAuthority('ROLE_USER')")    // 내부 통신용 헤더 때문에 명시적 작성
     public ResponseEntity<ApiResponse<UserUpdateResponse>> updateMyProfile(
             Authentication authentication,
             @RequestBody UserUpdateRequest reqs
@@ -106,10 +103,14 @@ public class UserController {
     @Operation(summary = "관리자 권한 프로필 정보 수정", description = """
     관리자 권한으로 유저ID와 조직을 통해 직원의 조직 정보를 수정합니다.
     <br><br> 해당 회원의 userId 를 입력하고 알맞는 조직을 선택하세요.
+    <br> 변경할 Role 값을 요청으로 보내세요.
+    <br><br>***Role***
+    <br>USER: 일반
+    <br>ADMIN: 관리자
     """)
 
     @PatchMapping("/profile/{userId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")    // 내부 통신용 헤더 때문에 명시적 작성
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<UserUpdateAdminResponse>> updateUserProfile(
             Authentication authentication,
             @PathVariable Long userId,
@@ -120,6 +121,32 @@ public class UserController {
         Long adminId = Long.valueOf(authentication.getName());
         log.info("관리자ID: {} 관리자가 -> 직원ID: {} 직원의 정보를 수정했습니다. ", adminId, userId);
         UserUpdateAdminResponse resp = userService.updateUserProfile(userId, workspace, reqs);
+        return ApiResponse.success(SuccessStatus.OK, resp);
+    }
+
+    // 관리자 권한 회원 비활성화
+    @Operation(summary = "관리자 권한 직원 상태 변경", description = """
+    관리자 권한으로 유저ID와 조직을 통해 직원의 상태를 변경합니다.
+    <br><br> 해당 회원의 userId 를 입력하고 알맞는 조직을 선택하세요.
+    <br> 변경할 EmployeeStatus 값을 요청으로 보내세요.
+    <br><br>***EmployeeStatus***
+    <br>ACTIVE: 재직
+    <br>LEAVE: 휴직 (비활성화)
+    <br>RETIRED: 퇴직 (비활성화)
+    """)
+
+    @PatchMapping("/status/{userId}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<EmployeeStatusResponse>> updateEmployeeStatus(
+            Authentication authentication,
+            @PathVariable Long userId,
+            @RequestParam Workspace workspace,
+            @RequestBody EmployeeStatusRequest reqs
+    ) {
+        // 로깅, 감사용
+        Long adminId = Long.valueOf(authentication.getName());
+        log.info("관리자ID: {} 관리자가 -> 직원ID: {} 직원의 정보를 수정했습니다. ", adminId, userId);
+        EmployeeStatusResponse resp = userService.updateEmployeeStatus(userId, workspace, reqs);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 }

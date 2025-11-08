@@ -2,8 +2,11 @@ package com.sampoom.user.common.jwt;
 
 import com.sampoom.user.common.exception.BadRequestException;
 import com.sampoom.user.common.exception.CustomAuthenticationException;
+import com.sampoom.user.common.exception.UnauthorizedException;
 import com.sampoom.user.common.response.ErrorStatus;
 import io.jsonwebtoken.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -42,5 +45,22 @@ public class JwtProvider {
             // 잘못된 형식 or 위조된 토큰
             throw new CustomAuthenticationException(ErrorStatus.INVALID_TOKEN);
         }
+    }
+
+    public String resolveAccessToken(HttpServletRequest request) {
+        // 쿠키에서 ACCESS_TOKEN 찾기
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("ACCESS_TOKEN".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        // Bearer 방식일 때
+        String header = request.getHeader("Authorization");
+        if (header == null) return null;
+        if (!header.startsWith("Bearer "))
+            throw new UnauthorizedException(ErrorStatus.INVALID_TOKEN);
+        return header.substring(7); // "Bearer " 제거
     }
 }

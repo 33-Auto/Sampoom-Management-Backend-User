@@ -22,9 +22,9 @@ public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
     private EmployeeStatus status;  // 상태 (근무중, 퇴사 등)
 
     @Column(nullable = false)
-    private LocalDateTime startedAt;  // 입사일
+    private LocalDateTime startedAt;  // 근무시작일 (휴직 포함)
 
-    private LocalDateTime endedAt;  // 퇴사일 (nullable)
+    private LocalDateTime endedAt;  // 근무종료일 (휴직 포함)
 
     @Column(nullable = false)
     private Long userId;  // 직원 ID
@@ -45,13 +45,12 @@ public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
     public void setUserId(Long userId) {
         this.userId = userId;
     }
-
-    public void setPosition(Position position) {
-        this.position = position;
-    }
-
     // 더티 체킹
     public void updatePosition(Position newPosition) {
         this.position = newPosition;
+    }
+
+    public void updateEmployeeStatus(EmployeeStatus newEmployeeStatus){
+        this.status = newEmployeeStatus;
     }
 }

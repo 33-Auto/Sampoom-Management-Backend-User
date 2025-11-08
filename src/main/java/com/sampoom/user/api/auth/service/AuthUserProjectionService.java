@@ -1,94 +1,109 @@
 package com.sampoom.user.api.auth.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sampoom.user.api.auth.entity.AuthUserProjection;
+import com.sampoom.user.api.auth.event.AuthUserEvent;
 import com.sampoom.user.api.auth.repository.AuthUserProjectionRepository;
 import com.sampoom.user.common.entity.Role;
-import com.sampoom.user.common.exception.InternalServerErrorException;
 import com.sampoom.user.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.UUID;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthUserProjectionService {
-    private final ObjectMapper objectMapper;
-    private final AuthUserProjectionRepository authUserProjectionRepository;
+
+    private final AuthUserProjectionRepository repo;
 
     @Transactional
-    public void applyAuthEvent(String message) throws JsonProcessingException {
-        try {
-            var root = objectMapper.readTree(message);
-            if (root == null || !root.has("payload") || !root.has("eventId")) {
-                throw new InternalServerErrorException(ErrorStatus.INVALID_EVENT_FORMAT);
-            }
-            var payload = root.get("payload");
-            if (payload == null || !payload.has("userId")) {
-                    throw new InternalServerErrorException(ErrorStatus.INVALID_EVENT_FORMAT);
-            }
+    public void apply(AuthUserEvent e) {
+        final Long userId = e.getPayload().getUserId();
+        final Long incomingVer = nvl(e.getVersion(), 0L);
 
-            // 이벤트 메타데이터
-            String eventId = getTextSafely(root, "eventId", "unknown");
-            Long version = root.has("version") && !root.get("version").isNull()
-                    ? root.get("version").asLong()
-                    : 0L;
+        AuthUserProjection projection = repo.findByUserIdIncludingDeleted(userId).orElse(null);
 
-            var userId = payload.get("userId").asLong();
-            var email = getTextSafely(payload, "email", null);
-            var role = parseRole(getTextSafely(payload, "role", null));
-
-            var existingOpt = authUserProjectionRepository.findByUserId(userId);
-
-            AuthUserProjection projection;
-            if (existingOpt.isPresent()) {
-                var existing = existingOpt.get();
-                if (existing.getLastEventId() != null && existing.getLastEventId().equals(eventId)) {
-                    return;
-                }
-                if (version <= existing.getVersion()) {
-                    return;
-                }
-                projection = existing.builder()
-                        .email(email)
-                        .role(role)
-                        .version(version)
-                        .lastEventId(eventId)
-                        .build();
-            } else {
-                projection = AuthUserProjection.builder()
-                        .userId(userId)
-                        .email(email)
-                        .role(role)
-                        .version(version)
-                        .lastEventId(eventId)
-                        .build();
-            }
-            authUserProjectionRepository.save(projection);
-        }  catch (JsonProcessingException | IllegalArgumentException ex) {
-            throw new InternalServerErrorException(ErrorStatus.INVALID_EVENT_FORMAT);
+        // 멱등 처리: 같은 이벤트 두 번 들어오면 무시
+        if (projection != null && e.getEventId() != null && projection.getLastEventId() != null) {
+            if (projection.getLastEventId().equals(e.getEventId())) return;
         }
-        catch (Exception e) {
-            throw new InternalServerErrorException(ErrorStatus.EVENT_PROCESSING_FAILED);
+
+        // 역순 이벤트(버전 낮음) 차단
+        if (projection != null && incomingVer <= nvl(projection.getVersion(), 0L)) return;
+
+        switch (e.getEventType()) {
+            case "AuthUserSignedUp":
+            case "AuthUserUpdated":
+                upsert(projection, e, incomingVer);
+                break;
+            case "AuthUserDeleted":
+                softDelete(projection, e, incomingVer);
+                break;
+            default:
+                log.warn("Unknown eventType: {}", e.getEventType());
+                break;
         }
     }
-    private String getTextSafely(JsonNode node, String field, String defaultValue) {
-        return (node == null || !node.has(field) || node.get(field).isNull())
-                ? defaultValue
-                : node.get(field).asText();
+
+    private void upsert(AuthUserProjection existing, AuthUserEvent e, Long ver) {
+        AuthUserEvent.Payload p = e.getPayload();
+
+        AuthUserProjection next = (existing == null)
+                ? AuthUserProjection.builder()
+                .userId(p.getUserId())
+                .email(p.getEmail())
+                .role(p.getRole())
+                .version(ver)
+                .lastEventId(e.getEventId())
+                .sourceUpdatedAt(p.getCreatedAt() != null ? p.getCreatedAt().atOffset(ZoneOffset.ofHours(9)) : null)
+                .deleted(false)
+                .deletedAt(null)
+                .build()
+                : existing.toBuilder()
+                .email(p.getEmail())
+                .role(p.getRole())
+                .version(ver)
+                .lastEventId(e.getEventId())
+                .sourceUpdatedAt(p.getUpdatedAt() != null ? p.getUpdatedAt().atOffset(ZoneOffset.ofHours(9)) : null)
+                .deleted(false)
+                .deletedAt(null)
+                .build();
+        repo.save(next);
     }
 
-    private Role parseRole(String roleStr) {
-        if (roleStr == null || roleStr.isBlank()) return Role.USER;
+    private void softDelete(AuthUserProjection existing, AuthUserEvent e, Long ver) {
+        if (existing == null) return;
+        AuthUserEvent.Payload p = e.getPayload();
+
+        AuthUserProjection next = existing.toBuilder()
+                .version(ver)
+                .lastEventId(e.getEventId())
+                .deleted(true)
+                .deletedAt(p.getDeletedAt() != null ? p.getDeletedAt().atOffset(ZoneOffset.ofHours(9)) : null)
+                .sourceUpdatedAt(p.getUpdatedAt() != null ? p.getUpdatedAt().atOffset(ZoneOffset.ofHours(9)) : null)
+                .build();
+
+        repo.save(next);
+    }
+
+    private Role parseRole(String r) {
+        if (r == null || r.isBlank()) return Role.USER;
         try {
-            return Role.valueOf(roleStr);
-        } catch (IllegalArgumentException e) {
-            log.warn("Unknown role value: {}, defaulting to USER", roleStr);
+            return Role.valueOf(r);
+        } catch (IllegalArgumentException ex) {
+            log.warn("Unknown role value: {}, defaulting to USER", r);
             return Role.USER;
         }
     }
+
+    private OffsetDateTime parseOffset(String iso) {
+        return iso == null ? null : OffsetDateTime.parse(iso);
+    }
+
+    private long nvl(Long v, long d) { return v == null ? d : v; }
 }
