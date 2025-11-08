@@ -20,9 +20,8 @@ public class AuthUserProjection extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private Long userId;
+    
     private String email;
 
     @Enumerated(EnumType.STRING)
