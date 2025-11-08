@@ -19,4 +19,10 @@ public abstract class SoftDeleteEntity extends BaseTimeEntity {
         this.deleted = true;
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void reactive(){
+        if(!this.deleted) return;
+        this.deleted = false;
+        this.deletedAt = null;
+    }
 }

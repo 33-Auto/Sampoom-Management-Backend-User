@@ -1,12 +1,13 @@
 package com.sampoom.user.common.entity;
 
+import com.sampoom.user.common.exception.BadRequestException;
+import com.sampoom.user.common.response.ErrorStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import static com.sampoom.user.common.entity.EmployeeStatus.ACTIVE;
 
 @MappedSuperclass
 @Getter
@@ -29,28 +30,42 @@ public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
     @Column(nullable = false)
     private Long userId;  // 직원 ID
 
+    @Version
+    @Column(nullable = false)
+    private Long version; // 낙관적 락 & 이벤트 버전 관리
+
     @PrePersist
     void prePersist() {
-        if (status == null) status = ACTIVE;
+        if (version == null) version = 0L;
+        if (status == null) status = EmployeeStatus.ACTIVE;
         if (startedAt == null) startedAt = LocalDateTime.now();
     }
 
-
-    public void terminate() {
-        this.status = EmployeeStatus.RETIRED;
-        this.endedAt = LocalDateTime.now();
+    public void onUpdateStatus(EmployeeStatus employeeStatus){
+        if (this.status == employeeStatus) return;
+        this.status = employeeStatus;
+        switch (employeeStatus){
+            case RETIRED -> {
+                this.endedAt = LocalDateTime.now();
+                softDelete();
+            }
+            case ACTIVE -> {
+                this.startedAt = LocalDateTime.now();
+                this.endedAt = null;
+                reactive();
+            }
+            case LEAVE -> this.endedAt = LocalDateTime.now();
+            default -> throw new BadRequestException(ErrorStatus.INVALID_EMPSTATUS_TYPE);
+        }
     }
 
     // setter 추가
     public void setUserId(Long userId) {
         this.userId = userId;
     }
+
     // 더티 체킹
     public void updatePosition(Position newPosition) {
         this.position = newPosition;
-    }
-
-    public void updateEmployeeStatus(EmployeeStatus newEmployeeStatus){
-        this.status = newEmployeeStatus;
     }
 }

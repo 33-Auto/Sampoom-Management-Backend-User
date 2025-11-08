@@ -2,14 +2,14 @@ package com.sampoom.user.api.auth.service;
 
 import com.sampoom.user.api.auth.entity.AuthUserProjection;
 import com.sampoom.user.api.auth.event.AuthUserEvent;
+import com.sampoom.user.api.auth.event.AuthWarmupEvent;
 import com.sampoom.user.api.auth.repository.AuthUserProjectionRepository;
-import com.sampoom.user.common.entity.Role;
-import com.sampoom.user.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
@@ -34,15 +34,12 @@ public class AuthUserProjectionService {
         }
 
         // 역순 이벤트(버전 낮음) 차단
-        if (projection != null && incomingVer <= nvl(projection.getVersion(), 0L)) return;
+        if (projection != null && incomingVer < nvl(projection.getVersion(), 0L)) return;
 
         switch (e.getEventType()) {
             case "AuthUserSignedUp":
             case "AuthUserUpdated":
                 upsert(projection, e, incomingVer);
-                break;
-            case "AuthUserDeleted":
-                softDelete(projection, e, incomingVer);
                 break;
             default:
                 log.warn("Unknown eventType: {}", e.getEventType());
@@ -58,51 +55,51 @@ public class AuthUserProjectionService {
                 .userId(p.getUserId())
                 .email(p.getEmail())
                 .role(p.getRole())
-                .version(ver)
                 .lastEventId(e.getEventId())
-                .sourceUpdatedAt(p.getCreatedAt() != null ? p.getCreatedAt().atOffset(ZoneOffset.ofHours(9)) : null)
-                .deleted(false)
-                .deletedAt(null)
+                .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
+                .version(ver)
                 .build()
                 : existing.toBuilder()
                 .email(p.getEmail())
                 .role(p.getRole())
-                .version(ver)
                 .lastEventId(e.getEventId())
-                .sourceUpdatedAt(p.getUpdatedAt() != null ? p.getUpdatedAt().atOffset(ZoneOffset.ofHours(9)) : null)
-                .deleted(false)
-                .deletedAt(null)
+                .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
+                .version(ver)
                 .build();
         repo.save(next);
     }
 
-    private void softDelete(AuthUserProjection existing, AuthUserEvent e, Long ver) {
-        if (existing == null) return;
-        AuthUserEvent.Payload p = e.getPayload();
+    @Transactional
+    public void rebuildFromWarmup(AuthWarmupEvent event) {
+        log.info("[AuthUserProjectionService] Warmup 재구성 시작");
 
-        AuthUserProjection next = existing.toBuilder()
-                .version(ver)
-                .lastEventId(e.getEventId())
-                .deleted(true)
-                .deletedAt(p.getDeletedAt() != null ? p.getDeletedAt().atOffset(ZoneOffset.ofHours(9)) : null)
-                .sourceUpdatedAt(p.getUpdatedAt() != null ? p.getUpdatedAt().atOffset(ZoneOffset.ofHours(9)) : null)
-                .build();
+        repo.deleteAllInBatch();
 
-        repo.save(next);
-    }
-
-    private Role parseRole(String r) {
-        if (r == null || r.isBlank()) return Role.USER;
-        try {
-            return Role.valueOf(r);
-        } catch (IllegalArgumentException ex) {
-            log.warn("Unknown role value: {}, defaulting to USER", r);
-            return Role.USER;
+        for (AuthWarmupEvent.AuthUserPayload p : event.getPayload()) {
+            AuthUserProjection projection = AuthUserProjection.builder()
+                    .userId(p.getUserId())
+                    .email(p.getEmail())
+                    .role(p.getRole())
+                    .version(p.getVersion())
+                    .lastEventId(event.getEventId())
+                    .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
+                    .build();
+            repo.save(projection);
         }
+
+        log.info("[AuthUserProjectionService] Warmup 완료 ({}건)", repo.count());
     }
+
 
     private OffsetDateTime parseOffset(String iso) {
-        return iso == null ? null : OffsetDateTime.parse(iso);
+        if (iso == null || iso.isBlank()) return null;
+        try {
+            // 오프셋(+09:00 등)이 포함된 경우
+            return OffsetDateTime.parse(iso);
+        } catch (Exception ex) {
+            // 오프셋이 없는 경우(LocalDateTime)
+            return LocalDateTime.parse(iso).atOffset(ZoneOffset.ofHours(9)); // 기본 오프셋 지정
+        }
     }
 
     private long nvl(Long v, long d) { return v == null ? d : v; }

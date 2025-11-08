@@ -29,7 +29,7 @@ public class WarehouseProjectionService {
             if (fp.getLastEventId().toString().equals(e.getEventId())) return;
         }
         // 역순(오래된 이벤트) 차단
-        if (fp != null && incomingVer <= nvl(fp.getVersion(), 0L)) return;
+        if (fp != null && incomingVer < nvl(fp.getVersion(), 0L)) return;
 
         switch (e.getEventType()) {
             case "BranchCreated":

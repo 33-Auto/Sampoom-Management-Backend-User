@@ -1,7 +1,10 @@
-package com.sampoom.user.api.auth.event;
+package com.sampoom.user.api.auth.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sampoom.user.api.auth.event.AuthUserEvent;
+import com.sampoom.user.api.auth.event.AuthWarmupEvent;
 import com.sampoom.user.api.auth.service.AuthUserProjectionService;
 import com.sampoom.user.common.exception.InternalServerErrorException;
 import com.sampoom.user.common.response.ErrorStatus;
@@ -20,12 +23,30 @@ public class AuthEventHandler {
     private final ObjectMapper objectMapper;
     private final AuthUserProjectionService authUserProjectionService;
 
-    @KafkaListener(topics = "auth-events",groupId = "auth-events-users")
+    @KafkaListener(topics = "auth-events",groupId = "auth-events-user-prod")
     public void authEventHandle(String message, Acknowledgment ack) {
         try {
-            AuthUserEvent event = objectMapper.readValue(message, AuthUserEvent.class);
+            JsonNode root = objectMapper.readTree(message);
+            String eventType = root.get("eventType").asText();
 
-            authUserProjectionService.apply(event);
+            switch (eventType) {
+                case "AuthUserSignedUp":
+                case "AuthUserUpdated":
+                {
+                    AuthUserEvent event = objectMapper.treeToValue(root, AuthUserEvent.class);
+                    authUserProjectionService.apply(event);
+                    break;
+                }
+                case "AuthSystemWarmup": {
+                    AuthWarmupEvent event = objectMapper.treeToValue(root, AuthWarmupEvent.class);
+                    log.info("AuthSystemWarmup 이벤트 수신 → projection 전체 재구성 시작");
+                    // 필요 시 AuthUserProjectionService에서 warmup() 메서드 실행
+                    authUserProjectionService.rebuildFromWarmup(event);
+                    break;
+                }
+                default:
+                    log.warn("eventType: {}", eventType);
+            }
             ack.acknowledge();
         }
         catch (JsonProcessingException ex) {
