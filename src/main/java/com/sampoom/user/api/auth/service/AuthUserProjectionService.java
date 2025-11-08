@@ -34,7 +34,7 @@ public class AuthUserProjectionService {
         }
 
         // 역순 이벤트(버전 낮음) 차단
-        if (projection != null && incomingVer <= nvl(projection.getVersion(), 0L)) return;
+        if (projection != null && incomingVer < nvl(projection.getVersion(), 0L)) return;
 
         switch (e.getEventType()) {
             case "AuthUserSignedUp":
@@ -56,14 +56,14 @@ public class AuthUserProjectionService {
                 .email(p.getEmail())
                 .role(p.getRole())
                 .lastEventId(e.getEventId())
-                .sourceUpdatedAt(p.getCreatedAt() != null ? parseOffset(p.getCreatedAt().toString()) : null)
+                .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
                 .version(ver)
                 .build()
                 : existing.toBuilder()
                 .email(p.getEmail())
                 .role(p.getRole())
                 .lastEventId(e.getEventId())
-                .sourceUpdatedAt(p.getUpdatedAt() != null ? parseOffset(p.getUpdatedAt().toString()) : null)
+                .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
                 .version(ver)
                 .build();
         repo.save(next);
@@ -82,7 +82,7 @@ public class AuthUserProjectionService {
                     .role(p.getRole())
                     .version(p.getVersion())
                     .lastEventId(event.getEventId())
-                    .sourceUpdatedAt(parseOffset(String.valueOf(p.getCreatedAt())))
+                    .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
                     .build();
             repo.save(projection);
         }
