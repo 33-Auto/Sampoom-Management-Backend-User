@@ -149,6 +149,8 @@ public class UserService {
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         };
 
+        entityManager.flush();  // version 필드 초기화를 위해 flush
+
         // 이벤트 발행
         UserCreatedEvent evt = UserCreatedEvent.builder()
                 .eventId(UUID.randomUUID().toString())

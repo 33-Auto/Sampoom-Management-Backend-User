@@ -91,7 +91,7 @@ public class AuthUserProjectionService {
 
 
     private OffsetDateTime parseOffset(String iso) {
-        if (iso == null || iso.isBlank()) return null;
+        if (iso == null || iso.equalsIgnoreCase("null") || iso.isBlank()) return null;
         try {
             // 오프셋(+09:00 등)이 포함된 경우
             return OffsetDateTime.parse(iso);
