@@ -172,22 +172,31 @@ public class UserInfoService {
                                 .organizationId(f.getFactoryId())
                                 .branch(factoryNameMap.get(f.getFactoryId()))
                                 .position(f.getPosition())
+                                .status(f.getStatus())
+                                .createdAt(f.getCreatedAt())
                                 .startedAt(f.getStartedAt())
-                                .endedAt(f.getEndedAt());
+                                .endedAt(f.getEndedAt())
+                                .deletedAt(f.getDeletedAt());
                     } else if (w != null) {
                         builder.workspace(Workspace.WAREHOUSE)
                                 .organizationId(w.getWarehouseId())
                                 .branch(warehouseNameMap.get(w.getWarehouseId()))
                                 .position(w.getPosition())
+                                .status(w.getStatus())
+                                .createdAt(w.getCreatedAt())
                                 .startedAt(w.getStartedAt())
-                                .endedAt(w.getEndedAt());
+                                .endedAt(w.getEndedAt())
+                                .deletedAt(w.getDeletedAt());
                     } else if (a != null) {
                         builder.workspace(Workspace.AGENCY)
                                 .organizationId(a.getAgencyId())
                                 .branch(agencyNameMap.get(a.getAgencyId()))
                                 .position(a.getPosition())
+                                .status(a.getStatus())
+                                .createdAt(a.getCreatedAt())
                                 .startedAt(a.getStartedAt())
-                                .endedAt(a.getEndedAt());
+                                .endedAt(a.getEndedAt())
+                                .deletedAt(a.getDeletedAt());
                     } else {
                         builder.workspace(null);
                     }

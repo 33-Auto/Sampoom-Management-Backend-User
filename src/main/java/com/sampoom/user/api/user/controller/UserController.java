@@ -78,7 +78,7 @@ public class UserController {
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserInfoListResponse>> getUsersInfo(
             @ParameterObject
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC)
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable,
             @RequestParam(required=false)Workspace workspace,
             @RequestParam(required=false)Long organizationId
