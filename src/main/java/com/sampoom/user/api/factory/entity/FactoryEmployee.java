@@ -11,8 +11,6 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@SQLDelete(sql = "UPDATE factory_employee SET deleted = true, updated_at = now() WHERE factory_employee_id = ?")
-@SQLRestriction("deleted = false")
 @Builder
 public class FactoryEmployee extends BaseEmployeeEntity {
 

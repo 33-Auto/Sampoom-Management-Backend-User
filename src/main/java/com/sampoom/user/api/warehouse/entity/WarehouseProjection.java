@@ -16,7 +16,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@SQLRestriction("deleted = false")
 public class WarehouseProjection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
