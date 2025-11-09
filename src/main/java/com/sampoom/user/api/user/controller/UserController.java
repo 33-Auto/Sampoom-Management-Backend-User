@@ -44,14 +44,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    // Auth 통신용(Feign)
-    @Operation(summary = "[Not Client API] 로그인 User 서비스 내부 통신용", description = "[Not Client API] 로그인을 통해 유저의 조직 정합성을 검증합니다.")
-    @PostMapping("/internal/verify")
-    public ResponseEntity<LoginResponse> verifyWorkspace(@Valid @RequestBody LoginRequest req) {
-        LoginResponse res = userService.verifyWorkspace(req);
-        return ResponseEntity.ok(res);
-    }
-
     // AccessToken 내 userId로 profile 조회
     @Operation(summary = "로그인 유저 프로필 정보 조회", description = "토큰으로 로그인한 유저의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
@@ -78,7 +70,7 @@ public class UserController {
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserInfoListResponse>> getUsersInfo(
             @ParameterObject
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC)
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable,
             @RequestParam(required=false)Workspace workspace,
             @RequestParam(required=false)Long organizationId

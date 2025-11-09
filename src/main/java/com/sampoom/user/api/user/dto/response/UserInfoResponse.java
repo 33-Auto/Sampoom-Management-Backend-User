@@ -1,5 +1,6 @@
 package com.sampoom.user.api.user.dto.response;
 
+import com.sampoom.user.common.entity.EmployeeStatus;
 import com.sampoom.user.common.entity.Position;
 import com.sampoom.user.common.entity.Role;
 import com.sampoom.user.common.entity.Workspace;
@@ -27,6 +28,11 @@ public class UserInfoResponse {
     private Long organizationId;
     private String branch;
     private Position position;
-    private LocalDateTime startedAt;  // 입사일
-    private LocalDateTime endedAt;  // 퇴사일 (nullable)
+
+    private EmployeeStatus status;
+
+    private LocalDateTime createdAt;    // 최초 입사일
+    private LocalDateTime startedAt;    // 근무 시작일
+    private LocalDateTime endedAt;      // 근무 종료일
+    private LocalDateTime deletedAt;    // 퇴사일
 }

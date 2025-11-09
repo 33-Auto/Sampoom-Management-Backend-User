@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class UserInfoListResponse {
         private boolean hasPrevious; // 이전 페이지 존재 여부
     }
 
-    public static <T> UserInfoListResponse of(org.springframework.data.domain.Page<UserInfoResponse> page) {
+    public static <T> UserInfoListResponse of(Page<UserInfoResponse> page) {
         return UserInfoListResponse.builder()
                 .users(page.getContent())
                 .meta(PageMeta.builder()
