@@ -17,6 +17,7 @@ import com.sampoom.user.api.user.dto.response.EmployeeStatusResponse;
 import com.sampoom.user.api.user.dto.response.UserLoginResponse;
 import com.sampoom.user.api.user.dto.response.UserUpdateAdminResponse;
 import com.sampoom.user.api.user.event.EmployeeUpdatedEvent;
+import com.sampoom.user.api.user.event.UserCreatedEvent;
 import com.sampoom.user.api.user.internal.dto.LoginRequest;
 import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
@@ -96,6 +97,7 @@ public class UserService {
             throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
 
+        // 지점 이름 추출 및 저장
         switch (workspace) {
             case FACTORY -> {
                 FactoryProjection factory = factoryRepo.findByName(req.getBranch())
@@ -133,33 +135,46 @@ public class UserService {
                 agencyEmp.updatePosition(req.getPosition());
                 agencyEmpRepo.save(agencyEmp);
             }
-
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
-    }
 
-    @Transactional
-    public LoginResponse verifyWorkspace(LoginRequest req) {
-        if (req.getWorkspace() == null) {
-            throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
-        }
-        boolean valid = switch (req.getWorkspace()) {
-            case FACTORY -> factoryEmpRepo.existsByUserId(req.getUserId());
-            case WAREHOUSE -> warehouseEmpRepo.existsByUserId(req.getUserId());
-            case AGENCY -> agencyEmpRepo.existsByUserId(req.getUserId());
+        // 저장한 직원 조회 ( getStatus를 반환하기 위해 )
+        BaseEmployeeEntity emp = switch (workspace) {
+            case FACTORY -> factoryEmpRepo.findByUserId(user.getId())
+                    .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_EMPLOYEE));
+            case WAREHOUSE -> warehouseEmpRepo.findByUserId(user.getId())
+                    .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_WAREHOUSE_EMPLOYEE));
+            case AGENCY -> agencyEmpRepo.findByUserId(user.getId())
+                    .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
+            default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         };
 
-        if (!valid) {
-            throw new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_WORKSPACE);
-        }
-
-        return LoginResponse.builder()
-                .userId(req.getUserId())
-                .workspace(req.getWorkspace())
-                .valid(true)
+        // 이벤트 발행
+        UserCreatedEvent evt = UserCreatedEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType("UserCreated")
+                .occurredAt(OffsetDateTime.now().toString())
+                .version(user.getVersion())
+                .payload(UserCreatedEvent.Payload.builder()
+                        .userId(user.getId())
+                        .workspace(workspace)
+                        .employeeStatus(emp.getStatus())    // user의 근무 상태 표시 목적 user대신 emp 호출
+                        .updatedAt(user.getCreatedAt())     // 생성한 시간으로 sourceUpdatedAt 하기 위해
+                        .build())
                 .build();
-    }
+        try {
+            String payloadJson = objectMapper.writeValueAsString(evt);
+            outboxRepo.save(OutboxEvent.builder()
+                    .eventType(evt.getEventType())
+                    .aggregateId(emp.getUserId())
+                    .payload(payloadJson)
+                    .published(false)
+                    .build());
 
+        } catch (Exception e) {
+            throw new InternalServerErrorException(ErrorStatus.OUTBOX_SERIALIZATION_ERROR);
+        }
+    }
 
     @Transactional(readOnly = true)
     public UserLoginResponse getMyProfile(Long userId, Workspace workspace) {
