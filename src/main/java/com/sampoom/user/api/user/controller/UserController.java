@@ -3,12 +3,9 @@ package com.sampoom.user.api.user.controller;
 import com.sampoom.user.api.user.dto.request.EmployeeStatusRequest;
 import com.sampoom.user.api.user.dto.request.UserUpdateAdminRequest;
 import com.sampoom.user.api.user.dto.response.*;
-import com.sampoom.user.api.user.internal.dto.LoginRequest;
-import com.sampoom.user.api.user.internal.dto.LoginResponse;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.api.user.service.UserInfoService;
 import com.sampoom.user.api.user.service.UserService;
-import com.sampoom.user.common.entity.EmployeeStatus;
 import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.response.ApiResponse;
 import com.sampoom.user.common.response.SuccessStatus;
@@ -116,7 +113,7 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
-    // 관리자 권한 회원 비활성화
+    // 관리자 권한 회원 상태 변경
     @Operation(summary = "관리자 권한 직원 상태 변경", description = """
     관리자 권한으로 유저ID와 조직을 통해 직원의 상태를 변경합니다.
     <br><br> 해당 회원의 userId 를 입력하고 알맞는 조직을 선택하세요.
