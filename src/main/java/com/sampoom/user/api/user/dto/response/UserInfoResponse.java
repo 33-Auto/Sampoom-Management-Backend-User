@@ -20,8 +20,10 @@ public class UserInfoResponse {
     // AuthUserProjection
     private String email;
     private Role role;
+
     // User
     private String userName;
+
     // Employee
     private Long organizationId;
     private String branch;
