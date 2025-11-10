@@ -1,6 +1,6 @@
 package com.sampoom.user.api.auth.event;
 
-import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.entity.Workspace;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +25,7 @@ public class AuthUserEvent {
         @NotNull
         private String email;
         @NotNull
-        private Role role;
+        private Workspace workspace;
 
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;

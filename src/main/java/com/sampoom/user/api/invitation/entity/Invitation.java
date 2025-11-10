@@ -1,14 +1,12 @@
 package com.sampoom.user.api.invitation.entity;
 
 import com.sampoom.user.common.entity.Position;
-import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.entity.Workspace;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "invitation")
@@ -37,7 +35,7 @@ public class Invitation {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Role role;
+    private Workspace workspace;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

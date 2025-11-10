@@ -13,7 +13,7 @@ import com.sampoom.user.api.user.dto.response.UserInfoResponse;
 import com.sampoom.user.api.user.entity.User;
 import com.sampoom.user.api.user.repository.UserRepository;
 import com.sampoom.user.common.entity.BaseMemberEntity;
-import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.exception.BadRequestException;
 import com.sampoom.user.common.response.ErrorStatus;
 import jakarta.annotation.Nullable;
@@ -49,10 +49,10 @@ public class UserInfoService {
 
     public UserInfoListResponse getUsersInfo(
             Pageable pageable,
-            @Nullable Role role,
+            @Nullable Workspace workspace,
             @Nullable Long organizationId
     ) {
-        if (role == null && organizationId != null) {
+        if (workspace == null && organizationId != null) {
             throw new BadRequestException(ErrorStatus.INVALID_REQUEST_ORGID);
         }
         // userIds: userId만 모아둔 Set
@@ -60,7 +60,7 @@ public class UserInfoService {
         Page<User> userPage;
 
         // role이 null → 전체 사용자 조회
-        if (role == null) {
+        if (workspace == null) {
             userPage = userRepo.findAll(pageable);
             userIds.addAll(userPage.getContent().stream().map(User::getId).toList());
             if (userIds.isEmpty()) {
@@ -71,7 +71,7 @@ public class UserInfoService {
 
         // role별로 분기 (factory / warehouse / agency)
         // list: Employee들을 모아둔 List
-        switch (role) {
+        switch (workspace) {
             case AGENCY -> {
                 Page<AgencyEmployee> agencyPage = (organizationId == null)
                         ? agencyEmpRepo.findAll(pageable)
@@ -187,12 +187,12 @@ public class UserInfoService {
         // DTO 변환
         List<UserInfoResponse> result = users.stream().map(u -> {
             AuthUserProjection auth = authMap.get(u.getId());
-            if (auth == null || auth.getRole() == null)
+            if (auth == null || auth.getWorkspace() == null)
                 throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
 
             UserInfoResponse.UserInfoResponseBuilder b = baseBuilder(u, auth);
 
-            switch (auth.getRole()) {
+            switch (auth.getWorkspace()) {
                 case AGENCY -> {
                     AgencyEmployee e = agencyMap.get(u.getId());
                     if (e != null) fillEmployeeFields(b, e, agencyNameMap.get(e.getAgencyId()), e.getAgencyId());
@@ -217,7 +217,7 @@ public class UserInfoService {
                 .userId(u.getId())
                 .userName(u.getUserName())
                 .email(auth.getEmail())
-                .role(auth.getRole());
+                .workspace(auth.getWorkspace());
     }
 
     private <T extends BaseMemberEntity> void fillEmployeeFields(

@@ -4,7 +4,7 @@ import com.sampoom.user.api.agency.repository.AgencyEmployeeRepository;
 import com.sampoom.user.api.member.repository.*;
 import com.sampoom.user.api.user.event.UserWarmupEvent;
 import com.sampoom.user.common.entity.BaseMemberEntity;
-import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.entity.Workspace;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,13 +37,13 @@ public class UserWarmupPublisher {
     @PostConstruct
     public void publishWarmupOnStartup() {
         try {
-            var prodMembers = toPayloads(prodRepo.findAll(), Role.PRODUCTION);
-            var invenMembers = toPayloads(invenRepo.findAll(), Role.INVENTORY);
-            var agencyMembers = toPayloads(agencyRepo.findAll(), Role.AGENCY);
-            var purchaseMembers = toPayloads(purchaseRepo.findAll(), Role.PURCHASE);
-            var salesMembers = toPayloads(salesRepo.findAll(), Role.SALES);
-            var hrMembers = toPayloads(mdRepo.findAll(), Role.HR);
-            var mdMembers = toPayloads(hrRepo.findAll(), Role.MD);
+            var prodMembers = toPayloads(prodRepo.findAll(), Workspace.PRODUCTION);
+            var invenMembers = toPayloads(invenRepo.findAll(), Workspace.INVENTORY);
+            var agencyMembers = toPayloads(agencyRepo.findAll(), Workspace.AGENCY);
+            var purchaseMembers = toPayloads(purchaseRepo.findAll(), Workspace.PURCHASE);
+            var salesMembers = toPayloads(salesRepo.findAll(), Workspace.SALES);
+            var hrMembers = toPayloads(mdRepo.findAll(), Workspace.HR);
+            var mdMembers = toPayloads(hrRepo.findAll(), Workspace.MD);
 
             UserWarmupEvent evt = UserWarmupEvent.builder()
                     .eventId(UUID.randomUUID().toString())
@@ -68,7 +68,7 @@ public class UserWarmupPublisher {
 
     private List<UserWarmupEvent.UserPayload> toPayloads(
             List<? extends BaseMemberEntity> members,
-            Role Role
+            Workspace Workspace
     ) {
         return members.stream()
                 .map(e -> UserWarmupEvent.UserPayload.builder()

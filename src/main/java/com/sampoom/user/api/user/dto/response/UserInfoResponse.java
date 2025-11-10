@@ -2,7 +2,7 @@ package com.sampoom.user.api.user.dto.response;
 
 import com.sampoom.user.common.entity.EmployeeStatus;
 import com.sampoom.user.common.entity.Position;
-import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.entity.Workspace;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class UserInfoResponse {
 
     // AuthUserProjection
     private String email;
-    private Role role;
+    private Workspace workspace;
 
     // User
     private String userName;

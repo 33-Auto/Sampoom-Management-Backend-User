@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import static com.sampoom.user.common.entity.Role.AGENCY;
+import static com.sampoom.user.common.entity.Workspace.AGENCY;
 
 @Slf4j
 @Service
@@ -85,16 +85,16 @@ public class UserService {
         userRepo.save(user);
 
         // Employee:
-        Role role;
+        Workspace workspace;
         try {
-            role = req.getRole();
+            workspace = req.getWorkspace();
         } catch (IllegalArgumentException ex) {
             throw new BadRequestException(ErrorStatus.INVALID_ROLE_TYPE);
         }
 
         // 부서 신규 회원 등록
         BaseMemberEntity emp;
-        if (role == AGENCY) {
+        if (workspace == AGENCY) {
             AgencyProjection agency = agencyRepo.findByName(req.getBranch())
                     .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_NAME));
 
@@ -107,7 +107,7 @@ public class UserService {
             emp = e;
         } else {
             // 저장한 직원 조회 ( getStatus를 반환하기 위해 )
-            switch (role) {
+            switch (workspace) {
                 case PRODUCTION -> {
                     ProductionMember m = prodRepo.findByUserId(user.getId())
                             .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_PRODUCTION));
@@ -184,7 +184,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserLoginResponse getMyProfile(Long userId, Role role) {
+    public UserLoginResponse getMyProfile(Long userId, Workspace workspace) {
         if (userId == null || userId <= 0)
             throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         User user = userRepo.findById(userId)
@@ -196,7 +196,7 @@ public class UserService {
         String branchName = null;
         Long orgId = null;
 
-        switch (role) {
+        switch (workspace) {
             case AGENCY -> {
                 var e = agencyEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_EMPLOYEE_AGENCY));
@@ -250,7 +250,7 @@ public class UserService {
         return UserLoginResponse.builder()
                 .userId(userId)
                 .email(authUser.getEmail())
-                .role(authUser.getRole())
+                .workspace(authUser.getWorkspace())
                 .userName(user.getUserName())
                 .organizationId(orgId)
                 .branch(branchName)
@@ -278,8 +278,8 @@ public class UserService {
     }
 
     @Transactional
-    public UserUpdateAdminResponse updateUserProfile(Long userId, Role role, UserUpdateAdminRequest req) {
-        if (userId == null || role == null || req == null || req.getPosition() == null) {
+    public UserUpdateAdminResponse updateUserProfile(Long userId, Workspace workspace, UserUpdateAdminRequest req) {
+        if (userId == null || workspace == null || req == null || req.getPosition() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         }
         Position newPosition = req.getPosition();
@@ -287,7 +287,7 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
         BaseMemberEntity emp;
-        switch (role) {
+        switch (workspace) {
             case AGENCY -> {
                 emp = agencyEmpRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_EMPLOYEE_AGENCY));
@@ -339,15 +339,15 @@ public class UserService {
     }
 
     @Transactional
-    public EmployeeStatusResponse updateEmployeeStatus(Long userId, Role role, EmployeeStatusRequest req) {
-        if (userId == null || role == null || req == null || req.getEmployeeStatus() == null) {
+    public EmployeeStatusResponse updateEmployeeStatus(Long userId, Workspace workspace, EmployeeStatusRequest req) {
+        if (userId == null || workspace == null || req == null || req.getEmployeeStatus() == null) {
             throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
         }
         EmployeeStatus newEmployeeStatus = req.getEmployeeStatus();
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
-        BaseMemberEntity emp = switch (role) {
+        BaseMemberEntity emp = switch (workspace) {
             case AGENCY -> agencyEmpRepo.findByUserId(userId)
                     .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_EMPLOYEE_AGENCY));
             case PRODUCTION -> prodRepo.findByUserId(userId)

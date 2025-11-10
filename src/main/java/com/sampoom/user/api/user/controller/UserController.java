@@ -6,7 +6,7 @@ import com.sampoom.user.api.user.dto.response.*;
 import com.sampoom.user.api.user.internal.dto.SignupUser;
 import com.sampoom.user.api.user.service.UserInfoService;
 import com.sampoom.user.api.user.service.UserService;
-import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.response.ApiResponse;
 import com.sampoom.user.common.response.SuccessStatus;
 import com.sampoom.user.api.user.dto.request.UserUpdateRequest;
@@ -49,8 +49,8 @@ public class UserController {
     ){
         Long userId = Long.valueOf(authentication.getName());
         String roleName = authentication.getAuthorities().iterator().next().getAuthority();
-        Role role = Role.valueOf(roleName.replace("ROLE_", ""));
-        UserLoginResponse profile = userService.getMyProfile(userId, role);
+        Workspace workspace = Workspace.valueOf(roleName.replace("ROLE_", ""));
+        UserLoginResponse profile = userService.getMyProfile(userId, workspace);
         return ApiResponse.success(SuccessStatus.OK, profile);
     }
 
@@ -62,18 +62,18 @@ public class UserController {
             <br> **size**: 페이지 당 사이즈
             <br> **sort**: 정렬기준(id, userName),정렬순서(ASC,DESC)
             <br><br> **검색조건**
-            <br> **role**: 권한(부서) (미지정 시 조직 상관없이 전체 조회)
-            <br> **organizationId**: 조직 ID (**role 필수**, 미지정 시 부서 내 전체 조회)
+            <br> **workspace**: 권한(부서) (미지정 시 조직 상관없이 전체 조회)
+            <br> **organizationId**: 조직 ID (**workspace 필수**, 미지정 시 부서 내 전체 조회)
             """)
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserInfoListResponse>> getUsersInfo(
             @ParameterObject
             @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable,
-            @RequestParam(required=false) Role role,
+            @RequestParam(required=false) Workspace workspace,
             @RequestParam(required=false)Long organizationId
     ) {
-        UserInfoListResponse resp = userInfoService.getUsersInfo(pageable, role, organizationId);
+        UserInfoListResponse resp = userInfoService.getUsersInfo(pageable, workspace, organizationId);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
@@ -93,8 +93,8 @@ public class UserController {
     @Operation(summary = "관리자 권한 프로필 정보 수정", description = """
     관리자 권한으로 유저ID와 조직을 통해 직원의 조직 정보를 수정합니다.
     <br><br> 해당 회원의 userId 를 입력하고 알맞는 조직을 선택하세요.
-    <br> 변경할 Role 값을 요청으로 보내세요.
-    <br><br>***Role***
+    <br> 변경할 Workspace 값을 요청으로 보내세요.
+    <br><br>***Workspace***
     <br>USER: 일반
     <br>ADMIN: 관리자
     """)
@@ -104,13 +104,13 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserUpdateAdminResponse>> updateUserProfile(
             Authentication authentication,
             @PathVariable Long userId,
-            @RequestParam Role role,
+            @RequestParam Workspace workspace,
             @RequestBody UserUpdateAdminRequest reqs
     ) {
         // 로깅, 감사용
         Long adminId = Long.valueOf(authentication.getName());
         log.info("관리자ID: {} 관리자가 -> 직원ID: {} 직원의 정보를 수정했습니다. ", adminId, userId);
-        UserUpdateAdminResponse resp = userService.updateUserProfile(userId, role, reqs);
+        UserUpdateAdminResponse resp = userService.updateUserProfile(userId, workspace, reqs);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
@@ -130,14 +130,14 @@ public class UserController {
     public ResponseEntity<ApiResponse<EmployeeStatusResponse>> updateEmployeeStatus(
             Authentication authentication,
             @PathVariable Long userId,
-            @RequestParam Role role,
+            @RequestParam Workspace workspace,
             @RequestBody EmployeeStatusRequest reqs
     ) {
         // 로깅, 감사용
         Long adminId = Long.valueOf(authentication.getName());
 
         log.info("관리자ID: {} 관리자가 -> 직원ID: {} 직원의 정보를 수정했습니다. ", adminId, userId);
-        EmployeeStatusResponse resp = userService.updateEmployeeStatus(userId, role, reqs);
+        EmployeeStatusResponse resp = userService.updateEmployeeStatus(userId, workspace, reqs);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 }
