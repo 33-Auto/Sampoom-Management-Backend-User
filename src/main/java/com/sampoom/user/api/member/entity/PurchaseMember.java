@@ -4,6 +4,9 @@ import com.sampoom.user.common.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
+import static com.sampoom.user.common.entity.Workspace.HR;
+import static com.sampoom.user.common.entity.Workspace.PURCHASE;
+
 @Entity
 @Table(name = "purchase_member")
 @Getter
@@ -16,4 +19,5 @@ public class PurchaseMember extends BaseMemberEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "purchase_member_id")
     private Long id;  // 구매 부서 직원 ID
+
 }

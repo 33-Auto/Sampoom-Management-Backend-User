@@ -197,13 +197,13 @@ public class UserInfoService {
                     AgencyEmployee e = agencyMap.get(u.getId());
                     if (e != null) fillEmployeeFields(b, e, agencyNameMap.get(e.getAgencyId()), e.getAgencyId());
                 }
-                case PRODUCTION -> fillEmployeeFields(b, prodMap.get(u.getId()), "생산공장", null);
-                case INVENTORY -> fillEmployeeFields(b, invenMap.get(u.getId()), "재고창고", null);
-                case PURCHASE -> fillEmployeeFields(b, purchaseMap.get(u.getId()), "구매부서", null);
-                case SALES -> fillEmployeeFields(b, salesMap.get(u.getId()), "영업부서", null);
-                case MD -> fillEmployeeFields(b, mdMap.get(u.getId()), "MD부서", null);
-                case HR -> fillEmployeeFields(b, hrMap.get(u.getId()), "인사부서", null);
-                default -> b.branch("ADMIN");
+                case PRODUCTION -> fillEmployeeFields(b, prodMap.get(u.getId()), null, null);
+                case INVENTORY -> fillEmployeeFields(b, invenMap.get(u.getId()), null, null);
+                case PURCHASE -> fillEmployeeFields(b, purchaseMap.get(u.getId()), null, null);
+                case SALES -> fillEmployeeFields(b, salesMap.get(u.getId()), null, null);
+                case MD -> fillEmployeeFields(b, mdMap.get(u.getId()), null, null);
+                case HR -> fillEmployeeFields(b, hrMap.get(u.getId()), null, null);
+                default -> throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
             }
 
             return b.build();

@@ -4,6 +4,9 @@ import com.sampoom.user.common.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
+import static com.sampoom.user.common.entity.Workspace.HR;
+import static com.sampoom.user.common.entity.Workspace.INVENTORY;
+
 @Entity
 @Table(name = "inventory_member")
 @Getter

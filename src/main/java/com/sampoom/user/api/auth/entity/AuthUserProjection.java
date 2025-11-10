@@ -1,6 +1,7 @@
 package com.sampoom.user.api.auth.entity;
 
 import com.sampoom.user.common.entity.BaseTimeEntity;
+import com.sampoom.user.common.entity.Role;
 import com.sampoom.user.common.entity.Workspace;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,9 @@ public class AuthUserProjection extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private Workspace workspace;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     private String lastEventId;
 

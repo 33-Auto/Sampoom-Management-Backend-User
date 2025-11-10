@@ -29,7 +29,6 @@ public class UserInfoResponse {
     private String branch;
 
     private Position position;
-
     private EmployeeStatus status;
 
     private LocalDateTime createdAt;    // 최초 입사일

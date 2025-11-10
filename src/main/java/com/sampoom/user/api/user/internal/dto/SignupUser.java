@@ -13,7 +13,7 @@ import lombok.*;
 public class SignupUser {
     private Long userId;            // Auth에서 생성한 userId
     private String userName;        // 사용자 이름
-    private Workspace workspace;              // 부서
+    private Workspace workspace;    // 부서(분기용)
     private String branch;          // 지점명
     private Position position;      // 직책
 }

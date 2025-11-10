@@ -1,6 +1,7 @@
 package com.sampoom.user.api.user.event;
 
 import com.sampoom.user.common.entity.EmployeeStatus;
+import com.sampoom.user.common.entity.Workspace;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

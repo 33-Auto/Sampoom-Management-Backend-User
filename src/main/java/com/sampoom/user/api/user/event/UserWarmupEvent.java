@@ -1,10 +1,12 @@
 package com.sampoom.user.api.user.event;
 import com.sampoom.user.common.entity.EmployeeStatus;
+import com.sampoom.user.common.entity.Workspace;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.jdbc.Work;
 
 import java.time.LocalDateTime;
 import java.util.List;

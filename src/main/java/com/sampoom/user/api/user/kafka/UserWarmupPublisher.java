@@ -42,8 +42,8 @@ public class UserWarmupPublisher {
             var agencyMembers = toPayloads(agencyRepo.findAll(), Workspace.AGENCY);
             var purchaseMembers = toPayloads(purchaseRepo.findAll(), Workspace.PURCHASE);
             var salesMembers = toPayloads(salesRepo.findAll(), Workspace.SALES);
-            var hrMembers = toPayloads(mdRepo.findAll(), Workspace.HR);
-            var mdMembers = toPayloads(hrRepo.findAll(), Workspace.MD);
+            var mdMembers = toPayloads(mdRepo.findAll(), Workspace.MD);
+            var hrMembers = toPayloads(hrRepo.findAll(), Workspace.HR);
 
             UserWarmupEvent evt = UserWarmupEvent.builder()
                     .eventId(UUID.randomUUID().toString())
@@ -68,7 +68,7 @@ public class UserWarmupPublisher {
 
     private List<UserWarmupEvent.UserPayload> toPayloads(
             List<? extends BaseMemberEntity> members,
-            Workspace Workspace
+            Workspace workspace
     ) {
         return members.stream()
                 .map(e -> UserWarmupEvent.UserPayload.builder()

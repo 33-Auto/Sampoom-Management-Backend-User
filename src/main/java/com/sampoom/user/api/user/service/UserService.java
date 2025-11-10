@@ -33,10 +33,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.UUID;
 
 import static com.sampoom.user.common.entity.Workspace.AGENCY;
@@ -113,6 +115,7 @@ public class UserService {
                             .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_PRODUCTION));
                     m.setUserId(req.getUserId());
                     m.setPosition(req.getPosition());
+                    prodRepo.save(m);
                     emp = m;
                 }
 
@@ -121,6 +124,7 @@ public class UserService {
                             .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_INVENTORY));
                     m.setUserId(req.getUserId());
                     m.setPosition(req.getPosition());
+                    invenRepo.save(m);
                     emp = m;
                 }
                 case PURCHASE -> {
@@ -128,6 +132,7 @@ public class UserService {
                             .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_PURCHASE));
                     m.setUserId(req.getUserId());
                     m.setPosition(req.getPosition());
+                    purchaseRepo.save(m);
                     emp = m;
                 }
                 case SALES -> {
@@ -135,6 +140,7 @@ public class UserService {
                             .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_SALES));
                     m.setUserId(req.getUserId());
                     m.setPosition(req.getPosition());
+                    salesRepo.save(m);
                     emp = m;
                 }
                 case MD -> {
@@ -142,6 +148,7 @@ public class UserService {
                             .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_MD));
                     m.setUserId(req.getUserId());
                     m.setPosition(req.getPosition());
+                    mdRepo.save(m);
                     emp = m;
                 }
                 case HR -> {
@@ -149,6 +156,7 @@ public class UserService {
                             .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_HR));
                     m.setUserId(req.getUserId());
                     m.setPosition(req.getPosition());
+                    hrRepo.save(m);
                     emp = m;
                 }
                 default -> throw new BadRequestException(ErrorStatus.INVALID_ROLE_TYPE);
@@ -162,7 +170,7 @@ public class UserService {
                 .eventId(UUID.randomUUID().toString())
                 .eventType("UserCreated")
                 .occurredAt(OffsetDateTime.now().toString())
-                .version(user.getVersion())
+                .version(emp.getVersion())
                 .payload(UserCreatedEvent.Payload.builder()
                         .userId(user.getId())
                         .employeeStatus(emp.getStatus())    // user의 근무 상태 표시 목적 user대신 emp 호출
@@ -184,16 +192,29 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserLoginResponse getMyProfile(Long userId, Workspace workspace) {
+    public UserLoginResponse getMyProfile(Long userId, Collection<? extends GrantedAuthority> authorities) {
+        Workspace workspace = null;
+        for (GrantedAuthority authority : authorities) {
+            String name = authority.getAuthority().replace("ROLE_", "");
+            try {
+                workspace = Workspace.valueOf(name);
+                break; // workspace 찾으면 바로 종료
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        if (workspace == null)
+            throw new BadRequestException(ErrorStatus.INVALID_TOKEN);
+
         if (userId == null || userId <= 0)
             throw new BadRequestException(ErrorStatus.INVALID_INPUT_VALUE);
+
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
         AuthUserProjection authUser = authUserRepo.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER_BY_ID));
 
         BaseMemberEntity emp;
-        String branchName = null;
+        String branchName;
         Long orgId = null;
 
         switch (workspace) {
@@ -211,37 +232,37 @@ public class UserService {
             case PRODUCTION -> {
                 emp = prodRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_PRODUCTION));
-                branchName = ADMIN_BRANCH;
+                branchName = "생산 관리";
             }
 
             case INVENTORY -> {
                 emp = invenRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_INVENTORY));
-                branchName = ADMIN_BRANCH;
+                branchName = "재고 관리";
             }
 
             case PURCHASE -> {
                 emp = purchaseRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_PURCHASE));
-                branchName = ADMIN_BRANCH;
+                branchName = "구매 관리";
             }
 
             case SALES -> {
                 emp = salesRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_SALES));
-                branchName = ADMIN_BRANCH;
+                branchName = "판매 관리";
             }
 
             case MD -> {
                 emp = mdRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_MD));
-                branchName = ADMIN_BRANCH;
+                branchName = "기준 정보 관리";
             }
 
             case HR -> {
                 emp = hrRepo.findByUserId(userId)
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_HR));
-                branchName = ADMIN_BRANCH;
+                branchName = "인사 관리";
             }
 
             default -> throw new BadRequestException(ErrorStatus.INVALID_ROLE_TYPE);
@@ -250,7 +271,7 @@ public class UserService {
         return UserLoginResponse.builder()
                 .userId(userId)
                 .email(authUser.getEmail())
-                .workspace(authUser.getWorkspace())
+                .workspace(workspace)
                 .userName(user.getUserName())
                 .organizationId(orgId)
                 .branch(branchName)

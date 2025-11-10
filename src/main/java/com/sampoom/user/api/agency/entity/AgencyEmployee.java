@@ -4,6 +4,8 @@ import com.sampoom.user.common.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
+import static com.sampoom.user.common.entity.Workspace.AGENCY;
+
 @Entity
 @Table(name = "agency_employee")
 @Getter

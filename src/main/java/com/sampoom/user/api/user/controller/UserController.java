@@ -22,7 +22,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
 
 @Slf4j
 @RestController
@@ -48,9 +51,8 @@ public class UserController {
             Authentication authentication
     ){
         Long userId = Long.valueOf(authentication.getName());
-        String roleName = authentication.getAuthorities().iterator().next().getAuthority();
-        Workspace workspace = Workspace.valueOf(roleName.replace("ROLE_", ""));
-        UserLoginResponse profile = userService.getMyProfile(userId, workspace);
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        UserLoginResponse profile = userService.getMyProfile(userId, authorities);
         return ApiResponse.success(SuccessStatus.OK, profile);
     }
 
