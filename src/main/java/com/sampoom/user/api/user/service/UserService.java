@@ -99,16 +99,18 @@ public class UserService {
         }
 
         // 부서 신규 회원 등록
-        if (role==AGENCY) {
+        BaseMemberEntity emp;
+        if (role == AGENCY) {
             AgencyProjection agency = agencyRepo.findByName(req.getBranch())
                     .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_NAME));
 
-            AgencyEmployee agencyEmp = AgencyEmployee.builder()
+            AgencyEmployee e = AgencyEmployee.builder()
                     .agencyId(agency.getAgencyId())
                     .build();
-            agencyEmp.setUserId(req.getUserId());
-            agencyEmp.updatePosition(req.getPosition());
-            agencyEmpRepo.save(agencyEmp);
+            e.setUserId(req.getUserId());
+            e.updatePosition(req.getPosition());
+            agencyEmpRepo.save(e);
+            emp = e;
         }
 
         // 저장한 직원 조회 ( getStatus를 반환하기 위해 )
@@ -118,6 +120,7 @@ public class UserService {
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_FACTORY_EMPLOYEE));
                 m.setUserId(req.getUserId());
                 m.setPosition(req.getPosition());
+                emp = m;
             }
 
             case INVENTORY -> {
@@ -125,30 +128,35 @@ public class UserService {
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_WAREHOUSE_EMPLOYEE));
                 m.setUserId(req.getUserId());
                 m.setPosition(req.getPosition());
+                emp = m;
             }
             case PURCHASE -> {
                 PurchaseMember m = purchaseRepo.findByUserId(user.getId())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
                 m.setUserId(req.getUserId());
                 m.setPosition(req.getPosition());
+                emp = m;
             }
             case SALES -> {
                 SalesMember m = salesRepo.findByUserId(user.getId())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
                 m.setUserId(req.getUserId());
                 m.setPosition(req.getPosition());
+                emp = m;
             }
             case MD -> {
                 MDMember m = mdRepo.findByUserId(user.getId())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
                 m.setUserId(req.getUserId());
                 m.setPosition(req.getPosition());
+                emp = m;
             }
             case HR -> {
                 HRMember m = hrRepo.findByUserId(user.getId())
                         .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_AGENCY_EMPLOYEE));
                 m.setUserId(req.getUserId());
                 m.setPosition(req.getPosition());
+                emp = m;
             }
             default -> throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
@@ -205,7 +213,6 @@ public class UserService {
                         .email(authUser.getEmail())
                         .role(authUser.getRole())
                         .userName(user.getUserName())
-                        .workspace(workspace)
                         .organizationId(emp.getFactoryId())
                         .branch(branchName)
                         .position(emp.getPosition())
