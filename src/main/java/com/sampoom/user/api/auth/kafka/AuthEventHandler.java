@@ -23,7 +23,7 @@ public class AuthEventHandler {
     private final ObjectMapper objectMapper;
     private final AuthUserProjectionService authUserProjectionService;
 
-    @KafkaListener(topics = "auth-events",groupId = "auth-events-user-prod")
+    @KafkaListener(topics = "auth-events",groupId = "auth-events-user-prod1")
     public void authEventHandle(String message, Acknowledgment ack) {
         try {
             JsonNode root = objectMapper.readTree(message);

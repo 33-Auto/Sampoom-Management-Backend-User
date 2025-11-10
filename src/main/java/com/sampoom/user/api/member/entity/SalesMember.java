@@ -18,4 +18,11 @@ public class SalesMember extends BaseMemberEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sales_member_id")
     private Long id;  // 영업 부서 직원 ID
+
+    public static SalesMember create(Long userId, Position position) {
+        SalesMember m = new SalesMember();
+        m.setUserId(userId);
+        m.updatePosition(position);
+        return m;
+    }
 }

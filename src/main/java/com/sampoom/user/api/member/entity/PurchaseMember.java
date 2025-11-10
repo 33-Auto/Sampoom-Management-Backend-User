@@ -20,4 +20,10 @@ public class PurchaseMember extends BaseMemberEntity {
     @Column(name = "purchase_member_id")
     private Long id;  // 구매 부서 직원 ID
 
+    public static PurchaseMember create(Long userId, Position position) {
+        PurchaseMember m = new PurchaseMember();
+        m.setUserId(userId);
+        m.updatePosition(position);
+        return m;
+    }
 }

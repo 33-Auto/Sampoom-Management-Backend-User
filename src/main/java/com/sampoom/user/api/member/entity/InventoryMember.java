@@ -19,4 +19,11 @@ public class InventoryMember extends BaseMemberEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "inventory_member_id")
     private Long id;  // 재고 부서 직원 ID
+
+    public static InventoryMember create(Long userId, Position position) {
+        InventoryMember m = new InventoryMember();
+        m.setUserId(userId);
+        m.updatePosition(position);
+        return m;
+    }
 }

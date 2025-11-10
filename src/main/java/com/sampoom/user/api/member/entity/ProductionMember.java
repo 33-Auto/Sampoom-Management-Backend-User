@@ -19,4 +19,11 @@ public class ProductionMember extends BaseMemberEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "production_member_id")
     private Long id;  // 생산 부서 직원 ID
+
+    public static ProductionMember create(Long userId, Position position) {
+        ProductionMember m = new ProductionMember();
+        m.setUserId(userId);
+        m.updatePosition(position);
+        return m;
+    }
 }

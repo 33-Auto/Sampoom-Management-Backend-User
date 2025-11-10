@@ -63,7 +63,6 @@ public class UserService {
 
     // 기준 정보(지점용)
     private final AgencyProjectionRepository agencyRepo;
-    private static final String ADMIN_BRANCH = "본사";
 
     private final ObjectMapper objectMapper;
     private final OutboxRepository outboxRepo;
@@ -111,53 +110,35 @@ public class UserService {
             // 저장한 직원 조회 ( getStatus를 반환하기 위해 )
             switch (workspace) {
                 case PRODUCTION -> {
-                    ProductionMember m = prodRepo.findByUserId(user.getId())
-                            .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_PRODUCTION));
-                    m.setUserId(req.getUserId());
-                    m.setPosition(req.getPosition());
-                    prodRepo.save(m);
-                    emp = m;
+                    ProductionMember e = ProductionMember.create(req.getUserId(), req.getPosition());
+                    prodRepo.save(e);
+                    emp = e;
                 }
 
                 case INVENTORY -> {
-                    InventoryMember m = invenRepo.findByUserId(user.getId())
-                            .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_INVENTORY));
-                    m.setUserId(req.getUserId());
-                    m.setPosition(req.getPosition());
-                    invenRepo.save(m);
-                    emp = m;
+                    InventoryMember e = InventoryMember.create(req.getUserId(), req.getPosition());
+                    invenRepo.save(e);
+                    emp = e;
                 }
                 case PURCHASE -> {
-                    PurchaseMember m = purchaseRepo.findByUserId(user.getId())
-                            .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_PURCHASE));
-                    m.setUserId(req.getUserId());
-                    m.setPosition(req.getPosition());
-                    purchaseRepo.save(m);
-                    emp = m;
+                    PurchaseMember e = PurchaseMember.create(req.getUserId(), req.getPosition());
+                    purchaseRepo.save(e);
+                    emp = e;
                 }
                 case SALES -> {
-                    SalesMember m = salesRepo.findByUserId(user.getId())
-                            .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_SALES));
-                    m.setUserId(req.getUserId());
-                    m.setPosition(req.getPosition());
-                    salesRepo.save(m);
-                    emp = m;
+                    SalesMember e = SalesMember.create(req.getUserId(), req.getPosition());
+                    salesRepo.save(e);
+                    emp = e;
                 }
                 case MD -> {
-                    MDMember m = mdRepo.findByUserId(user.getId())
-                            .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_MD));
-                    m.setUserId(req.getUserId());
-                    m.setPosition(req.getPosition());
-                    mdRepo.save(m);
-                    emp = m;
+                    MDMember e = MDMember.create(req.getUserId(), req.getPosition());
+                    mdRepo.save(e);
+                    emp = e;
                 }
                 case HR -> {
-                    HRMember m = hrRepo.findByUserId(user.getId())
-                            .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_MEMBER_HR));
-                    m.setUserId(req.getUserId());
-                    m.setPosition(req.getPosition());
-                    hrRepo.save(m);
-                    emp = m;
+                    HRMember e = HRMember.create(req.getUserId(), req.getPosition());
+                    hrRepo.save(e);
+                    emp=e;
                 }
                 default -> throw new BadRequestException(ErrorStatus.INVALID_ROLE_TYPE);
             }

@@ -43,13 +43,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
         try {
             String accessToken = jwtProvider.resolveAccessToken(request);
-            if (accessToken == null) {
+            if (accessToken == null || accessToken.isBlank()) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            if (accessToken.isBlank()) {
-                throw new CustomAuthenticationException(ErrorStatus.BLANK_TOKEN);
-            }
+
             Claims claims = jwtProvider.parse(accessToken);
 
             // 토큰 타입 검증
@@ -103,14 +101,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
             Role role;
-            try {
-                role = Role.valueOf(roleStr);
-            } catch (IllegalArgumentException ex) {
-                throw new CustomAuthenticationException(ErrorStatus.INVALID_TOKEN);
-            }
-
             Workspace workspace;
             try {
+                role = Role.valueOf(roleStr);
                 workspace = Workspace.valueOf(workspaceStr);
             } catch (IllegalArgumentException ex) {
                 throw new CustomAuthenticationException(ErrorStatus.INVALID_TOKEN);

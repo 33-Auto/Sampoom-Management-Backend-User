@@ -19,4 +19,11 @@ public class MDMember extends BaseMemberEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "md_member_id")
     private Long id;  // 기준 정보 부서 직원 ID
+
+    public static MDMember create(Long userId, Position position) {
+        MDMember m = new MDMember();
+        m.setUserId(userId);
+        m.updatePosition(position);
+        return m;
+    }
 }
