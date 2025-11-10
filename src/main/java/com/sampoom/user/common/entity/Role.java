@@ -1,8 +1,6 @@
 package com.sampoom.user.common.entity;
 
 public enum Role {
-    // 통합 관리자
-    ADMIN,
         // 웹
         MD,           // 기준 정보 관리 부서
         SALES,        // 판매 관리 부서
