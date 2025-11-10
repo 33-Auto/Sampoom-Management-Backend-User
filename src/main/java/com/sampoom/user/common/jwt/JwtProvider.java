@@ -40,7 +40,7 @@ public class JwtProvider {
                     .generatePublic(new X509EncodedKeySpec(keyBytes));
             if (key instanceof RSAPublicKey rsaKey) {
                 if (rsaKey.getModulus().bitLength() < 2048) {
-                    throw new BadRequestException(ErrorStatus.TOO_SHORT_SECRET_KEY);
+                    throw new BadRequestException(ErrorStatus.SHORT_PUBLIC_KEY);
                 }
             }
             return key;
