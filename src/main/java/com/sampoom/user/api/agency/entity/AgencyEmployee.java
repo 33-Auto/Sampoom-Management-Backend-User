@@ -3,8 +3,6 @@ package com.sampoom.user.api.agency.entity;
 import com.sampoom.user.common.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "agency_employee")
@@ -12,7 +10,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class AgencyEmployee extends BaseEmployeeEntity {
+public class AgencyEmployee extends BaseMemberEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

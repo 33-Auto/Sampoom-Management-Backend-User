@@ -6,18 +6,17 @@ import com.sampoom.user.api.agency.repository.AgencyEmployeeRepository;
 import com.sampoom.user.api.agency.repository.AgencyProjectionRepository;
 import com.sampoom.user.api.auth.entity.AuthUserProjection;
 import com.sampoom.user.api.auth.repository.AuthUserProjectionRepository;
-import com.sampoom.user.api.factory.entity.FactoryEmployee;
+import com.sampoom.user.api.member.entity.ProductionMember;
 import com.sampoom.user.api.factory.entity.FactoryProjection;
-import com.sampoom.user.api.factory.repository.FactoryEmployeeRepository;
+import com.sampoom.user.api.member.repository.ProductionMemberRepository;
 import com.sampoom.user.api.factory.repository.FactoryProjectionRepository;
 import com.sampoom.user.api.user.dto.response.UserInfoListResponse;
 import com.sampoom.user.api.user.dto.response.UserInfoResponse;
 import com.sampoom.user.api.user.entity.User;
 import com.sampoom.user.api.user.repository.UserRepository;
-import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import com.sampoom.user.api.warehouse.entity.WarehouseProjection;
-import com.sampoom.user.api.warehouse.repository.WarehouseEmployeeRepository;
 import com.sampoom.user.api.warehouse.repository.WarehouseProjectionRepository;
+import com.sampoom.user.common.entity.Role;
 import com.sampoom.user.common.entity.Workspace;
 import com.sampoom.user.common.exception.BadRequestException;
 import com.sampoom.user.common.response.ErrorStatus;
@@ -39,27 +38,27 @@ public class UserInfoService {
 
     private final UserRepository userRepository;
     private final AuthUserProjectionRepository authUserProjectionRepository;
-    private final FactoryEmployeeRepository factoryEmployeeRepository;
+    private final ProductionMemberRepository productionMemberRepository;
     private final FactoryProjectionRepository factoryProjectionRepository;
-    private final WarehouseEmployeeRepository warehouseEmployeeRepository;
+    private final InventoryMemberRepository inventoryMemberRepository;
     private final WarehouseProjectionRepository warehouseProjectionRepository;
     private final AgencyEmployeeRepository agencyEmployeeRepository;
     private final AgencyProjectionRepository agencyProjectionRepository;
 
     public UserInfoListResponse getUsersInfo(
             Pageable pageable,
-            @Nullable Workspace workspace,
+            @Nullable Role role,
             @Nullable Long organizationId
     ) {
-        if (workspace == null && organizationId != null) {
+        if (role == null && organizationId != null) {
             throw new BadRequestException(ErrorStatus.INVALID_REQUEST_ORGID);
         }
         // userIds: userId만 모아둔 Set
         Set<Long> userIds = new HashSet<>();
         Page<User> userPage;
 
-        // workspace가 null → 전체 사용자 조회
-        if (workspace == null) {
+        // role이 null → 전체 사용자 조회
+        if (role == null) {
             userPage = userRepository.findAll(pageable);
             userIds.addAll(userPage.getContent().stream().map(User::getId).toList());
             if (userIds.isEmpty()) {
@@ -68,15 +67,15 @@ public class UserInfoService {
             return buildUserInfoListResponse(userPage.getContent(), userPage, pageable, userIds);
         }
 
-        // workspace별로 분기 (factory / warehouse / agency)
+        // role별로 분기 (factory / warehouse / agency)
         // list: Employee들을 모아둔 List
-        switch (workspace) {
-            case FACTORY -> {
-                Page<FactoryEmployee> factoryPage = (organizationId == null)
-                        ? factoryEmployeeRepository.findAll(pageable)
-                        : factoryEmployeeRepository.findAllByFactoryId(organizationId, pageable);
+        switch (role) {
+            case PRODUCTION -> {
+                Page<ProductionMember> factoryPage = (organizationId == null)
+                        ? productionMemberRepository.findAll(pageable)
+                        : productionMemberRepository.findAllByFactoryId(organizationId, pageable);
                 userIds.addAll(factoryPage.getContent().stream()
-                        .map(FactoryEmployee::getUserId)
+                        .map(ProductionMember::getUserId)
                         .toList());
                 if (userIds.isEmpty()) {
                     return UserInfoListResponse.of(Page.empty(pageable));
@@ -84,12 +83,12 @@ public class UserInfoService {
                 List<User> users = userRepository.findAllByIdIn(userIds);
                 return buildUserInfoListResponse(users, factoryPage, pageable, userIds);
             }
-            case WAREHOUSE -> {
-                Page<WarehouseEmployee> warehousePage = (organizationId == null)
-                        ? warehouseEmployeeRepository.findAll(pageable)
-                        : warehouseEmployeeRepository.findAllByWarehouseId(organizationId, pageable);
+            case INVENTORY -> {
+                Page<InventoryMember> warehousePage = (organizationId == null)
+                        ? inventoryMemberRepository.findAll(pageable)
+                        : inventoryMemberRepository.findAllByWarehouseId(organizationId, pageable);
                 userIds.addAll(warehousePage.getContent().stream()
-                        .map(WarehouseEmployee::getUserId)
+                        .map(InventoryMember::getUserId)
                         .toList());
                 if (userIds.isEmpty()) {
                     return UserInfoListResponse.of(Page.empty(pageable));
@@ -127,23 +126,23 @@ public class UserInfoService {
                 .collect(Collectors.toMap(AuthUserProjection::getUserId, a -> a, (existing, r) -> existing));
 
         // Employee 맵
-        Map<Long, FactoryEmployee> factoryMap = factoryEmployeeRepository.findAllByUserIdIn(userIds)
-                .stream().collect(Collectors.toMap(FactoryEmployee::getUserId, f -> f, (e, r) -> e));
-        Map<Long, WarehouseEmployee> warehouseMap = warehouseEmployeeRepository.findAllByUserIdIn(userIds)
-                .stream().collect(Collectors.toMap(WarehouseEmployee::getUserId, w -> w, (e, r) -> e));
+        Map<Long, ProductionMember> factoryMap = productionMemberRepository.findAllByUserIdIn(userIds)
+                .stream().collect(Collectors.toMap(ProductionMember::getUserId, f -> f, (e, r) -> e));
+        Map<Long, InventoryMember> warehouseMap = inventoryMemberRepository.findAllByUserIdIn(userIds)
+                .stream().collect(Collectors.toMap(InventoryMember::getUserId, w -> w, (e, r) -> e));
         Map<Long, AgencyEmployee> agencyMap = agencyEmployeeRepository.findAllByUserIdIn(userIds)
                 .stream().collect(Collectors.toMap(AgencyEmployee::getUserId, a -> a, (e, r) -> e));
 
         // projection 매핑
         Map<Long, String> factoryNameMap = factoryProjectionRepository
                 .findAllByFactoryIdIn(factoryMap.values().stream()
-                        .map(FactoryEmployee::getFactoryId)
+                        .map(ProductionMember::getFactoryId)
                         .collect(Collectors.toSet()))
                 .stream().collect(Collectors.toMap(FactoryProjection::getFactoryId, FactoryProjection::getName));
 
         Map<Long, String> warehouseNameMap = warehouseProjectionRepository
                 .findAllByWarehouseIdIn(warehouseMap.values().stream()
-                        .map(WarehouseEmployee::getWarehouseId)
+                        .map(InventoryMember::getWarehouseId)
                         .collect(Collectors.toSet()))
                 .stream().collect(Collectors.toMap(WarehouseProjection::getWarehouseId, WarehouseProjection::getName));
 
@@ -157,8 +156,8 @@ public class UserInfoService {
         List<UserInfoResponse> userInfoList = users.stream()
                 .map(u -> {
                     AuthUserProjection auth = authMap.get(u.getId());
-                    FactoryEmployee f = factoryMap.get(u.getId());
-                    WarehouseEmployee w = warehouseMap.get(u.getId());
+                    ProductionMember f = factoryMap.get(u.getId());
+                    InventoryMember w = warehouseMap.get(u.getId());
                     AgencyEmployee a = agencyMap.get(u.getId());
 
                     UserInfoResponse.UserInfoResponseBuilder builder = UserInfoResponse.builder()
@@ -168,7 +167,7 @@ public class UserInfoService {
                             .role(auth != null ? auth.getRole() : null);
 
                     if (f != null) {
-                        builder.workspace(Workspace.FACTORY)
+                        builder.workspace(Workspace.PRODUCTION)
                                 .organizationId(f.getFactoryId())
                                 .branch(factoryNameMap.get(f.getFactoryId()))
                                 .position(f.getPosition())
@@ -178,7 +177,7 @@ public class UserInfoService {
                                 .endedAt(f.getEndedAt())
                                 .deletedAt(f.getDeletedAt());
                     } else if (w != null) {
-                        builder.workspace(Workspace.WAREHOUSE)
+                        builder.workspace(Workspace.INVENTORY)
                                 .organizationId(w.getWarehouseId())
                                 .branch(warehouseNameMap.get(w.getWarehouseId()))
                                 .position(w.getPosition())

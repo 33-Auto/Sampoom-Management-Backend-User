@@ -37,7 +37,7 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/invitations").permitAll()
-                        .anyRequest().hasAuthority("ROLE_USER")
+                        .anyRequest().authenticated()
                 )
                 // 기본 폼 로그인 비활성화
                 .formLogin(login -> login.disable())

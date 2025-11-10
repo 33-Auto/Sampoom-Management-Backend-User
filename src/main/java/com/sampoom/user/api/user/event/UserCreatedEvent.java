@@ -1,7 +1,6 @@
 package com.sampoom.user.api.user.event;
 
 import com.sampoom.user.common.entity.EmployeeStatus;
-import com.sampoom.user.common.entity.Workspace;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,8 +25,6 @@ public class UserCreatedEvent {
         // User(Auth)
         @NotNull
         private Long userId;
-        @NotNull
-        private Workspace workspace;
         @NotNull
         private EmployeeStatus employeeStatus;
 

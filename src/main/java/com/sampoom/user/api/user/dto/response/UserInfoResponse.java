@@ -3,7 +3,6 @@ package com.sampoom.user.api.user.dto.response;
 import com.sampoom.user.common.entity.EmployeeStatus;
 import com.sampoom.user.common.entity.Position;
 import com.sampoom.user.common.entity.Role;
-import com.sampoom.user.common.entity.Workspace;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,9 +23,9 @@ public class UserInfoResponse {
     // User
     private String userName;
     // Employee
-    private Workspace workspace;
     private Long organizationId;
     private String branch;
+
     private Position position;
 
     private EmployeeStatus status;

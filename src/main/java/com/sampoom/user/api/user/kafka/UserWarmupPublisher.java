@@ -1,11 +1,10 @@
 package com.sampoom.user.api.user.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sampoom.user.api.agency.repository.AgencyEmployeeRepository;
-import com.sampoom.user.api.factory.repository.FactoryEmployeeRepository;
+import com.sampoom.user.api.member.repository.*;
 import com.sampoom.user.api.user.event.UserWarmupEvent;
-import com.sampoom.user.api.warehouse.repository.WarehouseEmployeeRepository;
-import com.sampoom.user.common.entity.BaseEmployeeEntity;
-import com.sampoom.user.common.entity.Workspace;
+import com.sampoom.user.common.entity.BaseMemberEntity;
+import com.sampoom.user.common.entity.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,9 +23,13 @@ public class UserWarmupPublisher {
 
     private final KafkaTemplate<String, String> kafka;
     private final ObjectMapper objectMapper;
-    private final FactoryEmployeeRepository factoryEmpRepo;
-    private final WarehouseEmployeeRepository warehouseEmpRepo;
-    private final AgencyEmployeeRepository agencyEmpRepo;
+    private final ProductionMemberRepository prodRepo;
+    private final InventoryMemberRepository invenRepo;
+    private final AgencyEmployeeRepository agencyRepo;
+    private final PurchaseMemberRepository purchaseRepo;
+    private final SalesMemberRepository salesRepo;
+    private final MDMemberRepository mdRepo;
+    private final HRMemberRepository hrRepo;
 
     @Value("${app.topics.user-events:user-events}")
     private String userEventsTopic;
@@ -34,17 +37,25 @@ public class UserWarmupPublisher {
     @PostConstruct
     public void publishWarmupOnStartup() {
         try {
-            var factories = toPayloads(factoryEmpRepo.findAll(),Workspace.FACTORY);
-            var warehouses = toPayloads(warehouseEmpRepo.findAll(), Workspace.WAREHOUSE);
-            var agencies = toPayloads(agencyEmpRepo.findAll(), Workspace.AGENCY);
+            var prodMembers = toPayloads(prodRepo.findAll(), Role.PRODUCTION);
+            var invenMembers = toPayloads(invenRepo.findAll(), Role.INVENTORY);
+            var agencyMembers = toPayloads(agencyRepo.findAll(), Role.AGENCY);
+            var purchaseMembers = toPayloads(purchaseRepo.findAll(), Role.PURCHASE);
+            var salesMembers = toPayloads(salesRepo.findAll(), Role.SALES);
+            var hrMembers = toPayloads(mdRepo.findAll(), Role.HR);
+            var mdMembers = toPayloads(hrRepo.findAll(), Role.MD);
 
             UserWarmupEvent evt = UserWarmupEvent.builder()
                     .eventId(UUID.randomUUID().toString())
                     .eventType("UserSystemWarmup")
                     .occurredAt(OffsetDateTime.now().toString())
-                    .factoryEmployees(factories)
-                    .warehouseEmployees(warehouses)
-                    .agencyEmployees(agencies)
+                    .prodMembers(prodMembers)
+                    .invenMembers(invenMembers)
+                    .agencyMembers(agencyMembers)
+                    .purchaseMembers(purchaseMembers)
+                    .salesMembers(salesMembers)
+                    .hrMembers(hrMembers)
+                    .mdMembers(mdMembers)
                     .build();
 
             String payload = objectMapper.writeValueAsString(evt);
@@ -56,13 +67,12 @@ public class UserWarmupPublisher {
     }
 
     private List<UserWarmupEvent.UserPayload> toPayloads(
-            List<? extends BaseEmployeeEntity> employees,
-            Workspace workspace
+            List<? extends BaseMemberEntity> members,
+            Role Role
     ) {
-        return employees.stream()
+        return members.stream()
                 .map(e -> UserWarmupEvent.UserPayload.builder()
                         .userId(e.getUserId())
-                        .workspace(workspace)
                         .employeeStatus(e.getStatus())
                         .createdAt(e.getCreatedAt())
                         .updatedAt(e.getUpdatedAt())
