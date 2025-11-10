@@ -52,7 +52,7 @@ public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
             case ACTIVE -> {
                 this.startedAt = LocalDateTime.now();
                 this.endedAt = null;
-                reactive();
+                reactivation();
             }
             case LEAVE -> this.endedAt = LocalDateTime.now();
             default -> throw new BadRequestException(ErrorStatus.INVALID_EMPSTATUS_TYPE);

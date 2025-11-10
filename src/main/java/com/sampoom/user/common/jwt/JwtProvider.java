@@ -27,6 +27,8 @@ public class JwtProvider {
         }
         try {
             this.publicKey = loadPublicKey(publicKeyBase64);
+        } catch (BadRequestException e) {
+            throw e;
         } catch (Exception e) {
             throw new BadRequestException(ErrorStatus.INVALID_PUBLIC_KEY);
         }
@@ -44,7 +46,9 @@ public class JwtProvider {
                 }
             }
             return key;
-        }  catch (Exception e) {
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
             throw new BadRequestException(ErrorStatus.INVALID_PUBLIC_KEY);
         }
     }
