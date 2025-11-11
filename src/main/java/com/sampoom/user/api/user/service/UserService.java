@@ -90,7 +90,7 @@ public class UserService {
         try {
             workspace = req.getWorkspace();
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestException(ErrorStatus.INVALID_ROLE_TYPE);
+            throw new BadRequestException(ErrorStatus.INVALID_WORKSPACE_TYPE);
         }
 
         // 부서 신규 회원 등록
