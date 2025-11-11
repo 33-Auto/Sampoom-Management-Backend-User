@@ -10,32 +10,55 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 @Component
 public class JwtProvider {
-    private final Key key;
+//    private final Key key;
+    private final PublicKey publicKey;
 
-    // Auth에서 들어오는 Key의 초기화 (캐싱용 객체)
-    public JwtProvider(@Value("${jwt.secret}") String secret) {
-        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
-            throw new BadRequestException(ErrorStatus.TOO_SHORT_SECRET_KEY);
+    public JwtProvider(@Value("${jwt.public-key-base64}") String publicKeyBase64) {
+        if (publicKeyBase64 == null || publicKeyBase64.isBlank()) {
+            throw new BadRequestException(ErrorStatus.INVALID_PUBLIC_KEY);
         }
-        this.key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
-                SignatureAlgorithm.HS256.getJcaName());
+        try {
+            this.publicKey = loadPublicKey(publicKeyBase64);
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorStatus.INVALID_PUBLIC_KEY);
+        }
+
+    }
+
+    private PublicKey loadPublicKey(String base64) throws Exception {
+        try {
+            byte[] keyBytes = Base64.getDecoder().decode(base64);
+            PublicKey key = KeyFactory.getInstance("RSA")
+                    .generatePublic(new X509EncodedKeySpec(keyBytes));
+            if (key instanceof RSAPublicKey rsaKey) {
+                if (rsaKey.getModulus().bitLength() < 2048) {
+                    throw new BadRequestException(ErrorStatus.SHORT_PUBLIC_KEY);
+                }
+            }
+            return key;
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorStatus.INVALID_PUBLIC_KEY);
+        }
     }
 
     public Claims parse(String token) {
-        if (token == null) {
-            throw new BadRequestException(ErrorStatus.NULL_TOKEN);
-        }
-        if (token.isBlank()){
-            throw new BadRequestException(ErrorStatus.BLANK_TOKEN);
+        if (token == null || token.isBlank()) {
+            throw new BadRequestException(ErrorStatus.NULL_BLANK_TOKEN);
         }
         try{
-            return Jwts.parserBuilder().setSigningKey(key).build()
+            return Jwts.parserBuilder().setSigningKey(publicKey).build()
                     .parseClaimsJws(token).getBody();
         }
         catch (ExpiredJwtException e) {
