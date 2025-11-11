@@ -15,11 +15,9 @@ import java.time.LocalDateTime;
 public abstract class BaseMemberEntity extends SoftDeleteEntity {
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private Position position;  // 직급
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private EmployeeStatus status;  // 상태 (근무중, 퇴사 등)
 
     @Column(nullable = false)
