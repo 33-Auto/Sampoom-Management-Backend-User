@@ -62,10 +62,10 @@ public class UserController {
             <br><br> **정렬**
             <br> **page**: n번째 페이지부터 불러오기
             <br> **size**: 페이지 당 사이즈
-            <br> **sort**: 정렬기준(id, userName),정렬순서(ASC,DESC)
+            <br> **sort**: 정렬기준(id(아이디순), userName(이름순)),정렬순서(ASC,DESC)
             <br><br> **검색조건**
-            <br> **workspace**: 권한(부서) (미지정 시 조직 상관없이 전체 조회)
-            <br> **organizationId**: 조직 ID (**workspace 필수**, 미지정 시 부서 내 전체 조회)
+            <br> **workspace**: 권한(부서) (미지정 시 관리 조직 상관없이 전체 조회)
+            <br> **organizationId(agencyId)**: 대리점 ID (**workspace:AGENCY 필수**, 미지정 시 부서 내 전체 조회)
             """)
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserInfoListResponse>> getUsersInfo(
@@ -73,7 +73,7 @@ public class UserController {
             @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable,
             @RequestParam(required=false) Workspace workspace,
-            @RequestParam(required=false)Long organizationId
+            @RequestParam(required=false) Long organizationId
     ) {
         UserInfoListResponse resp = userInfoService.getUsersInfo(pageable, workspace, organizationId);
         return ApiResponse.success(SuccessStatus.OK, resp);
@@ -93,14 +93,13 @@ public class UserController {
 
     // 관리자 권한 회원 수정
     @Operation(summary = "관리자 권한 프로필 정보 수정", description = """
-    관리자 권한으로 유저ID와 조직을 통해 직원의 조직 정보를 수정합니다.
-    <br><br> 해당 회원의 userId 를 입력하고 알맞는 조직을 선택하세요.
+    관리자 권한으로 유저ID와 조직을 통해 직원의 관리 조직 정보를 수정합니다.
+    <br><br> 해당 회원의 userId 를 입력하고 알맞는 관리 조직을 선택하세요.
     <br> 변경할 Workspace 값을 요청으로 보내세요.
     <br><br>***Workspace***
     <br>USER: 일반
     <br>ADMIN: 관리자
     """)
-
     @PatchMapping("/profile/{userId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<UserUpdateAdminResponse>> updateUserProfile(

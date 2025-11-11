@@ -59,7 +59,7 @@ public class UserInfoService {
         Set<Long> userIds = new HashSet<>();
         Page<User> userPage;
 
-        // role이 null → 전체 사용자 조회
+        // workspace가 null → 전체 사용자 조회
         if (workspace == null) {
             userPage = userRepo.findAll(pageable);
             userIds.addAll(userPage.getContent().stream().map(User::getId).toList());
@@ -69,7 +69,7 @@ public class UserInfoService {
             return buildUserInfoListResponse(userPage.getContent(), userPage, pageable, userIds);
         }
 
-        // role별로 분기 (factory / warehouse / agency)
+        // workspace 별로 분기 ( PRODUCTION / INVENTORY / ... )
         // list: Employee들을 모아둔 List
         switch (workspace) {
             case AGENCY -> {
@@ -192,6 +192,7 @@ public class UserInfoService {
 
             UserInfoResponse.UserInfoResponseBuilder b = baseBuilder(u, auth);
 
+            // AGENCY를 제외한 workspace는 지점ID(agencyId=organizationId) 모두 null 처리)
             switch (auth.getWorkspace()) {
                 case AGENCY -> {
                     AgencyEmployee e = agencyMap.get(u.getId());
