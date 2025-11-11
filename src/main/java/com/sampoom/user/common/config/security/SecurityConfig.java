@@ -1,7 +1,6 @@
 package com.sampoom.user.common.config.security;
 
 import com.sampoom.user.common.jwt.JwtAuthFilter;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -37,7 +36,7 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/invitations").permitAll()
-                        .anyRequest().hasAuthority("ROLE_USER")
+                        .anyRequest().authenticated()
                 )
                 // 기본 폼 로그인 비활성화
                 .formLogin(login -> login.disable())

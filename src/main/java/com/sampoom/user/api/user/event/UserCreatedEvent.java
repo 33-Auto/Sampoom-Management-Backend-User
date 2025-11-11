@@ -27,8 +27,6 @@ public class UserCreatedEvent {
         @NotNull
         private Long userId;
         @NotNull
-        private Workspace workspace;
-        @NotNull
         private EmployeeStatus employeeStatus;
 
         private LocalDateTime updatedAt;    // createdAt이지만 dto 통일 위해

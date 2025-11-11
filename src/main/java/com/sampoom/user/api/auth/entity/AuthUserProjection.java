@@ -2,12 +2,12 @@ package com.sampoom.user.api.auth.entity;
 
 import com.sampoom.user.common.entity.BaseTimeEntity;
 import com.sampoom.user.common.entity.Role;
+import com.sampoom.user.common.entity.Workspace;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.time.OffsetDateTime;
 
@@ -22,6 +22,9 @@ public class AuthUserProjection extends BaseTimeEntity {
     private Long userId;
 
     private String email;
+
+    @Enumerated(EnumType.STRING)
+    private Workspace workspace;
 
     @Enumerated(EnumType.STRING)
     private Role role;

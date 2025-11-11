@@ -22,7 +22,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
 
 @Slf4j
 @RestController
@@ -45,11 +48,11 @@ public class UserController {
     @Operation(summary = "로그인 유저 프로필 정보 조회", description = "토큰으로 로그인한 유저의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<UserLoginResponse>> getMyProfile(
-            @RequestParam Workspace workspace,
             Authentication authentication
     ){
         Long userId = Long.valueOf(authentication.getName());
-        UserLoginResponse profile = userService.getMyProfile(userId, workspace);
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        UserLoginResponse profile = userService.getMyProfile(userId, authorities);
         return ApiResponse.success(SuccessStatus.OK, profile);
     }
 
@@ -59,24 +62,24 @@ public class UserController {
             <br><br> **정렬**
             <br> **page**: n번째 페이지부터 불러오기
             <br> **size**: 페이지 당 사이즈
-            <br> **sort**: 정렬기준(id, userName),정렬순서(ASC,DESC)
+            <br> **sort**: 정렬기준(id(아이디순), userName(이름순)),정렬순서(ASC,DESC)
             <br><br> **검색조건**
-            <br> **workspace**: 조직 (미지정 시 조직 상관없이 전체 조회)
-            <br> **organizationId**: 조직 ID (**workspace 필수**, 미지정 시 조직 내 전체 조회)
+            <br> **workspace**: 권한(부서) (미지정 시 관리 조직 상관없이 전체 조회)
+            <br> **organizationId(agencyId)**: 대리점 ID (**workspace:AGENCY 필수**, 미지정 시 부서 내 전체 조회)
             """)
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserInfoListResponse>> getUsersInfo(
             @ParameterObject
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable,
-            @RequestParam(required=false)Workspace workspace,
-            @RequestParam(required=false)Long organizationId
+            @RequestParam(required=false) Workspace workspace,
+            @RequestParam(required=false) Long organizationId
     ) {
         UserInfoListResponse resp = userInfoService.getUsersInfo(pageable, workspace, organizationId);
         return ApiResponse.success(SuccessStatus.OK, resp);
     }
 
-    // 회원 수정
+    // 본인 회원 수정
     @Operation(summary = "로그인 유저 프로필 정보 수정", description = "토큰으로 로그인한 유저의 프로필 정보를 수정합니다.")
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> updateMyProfile(
@@ -90,14 +93,13 @@ public class UserController {
 
     // 관리자 권한 회원 수정
     @Operation(summary = "관리자 권한 프로필 정보 수정", description = """
-    관리자 권한으로 유저ID와 조직을 통해 직원의 조직 정보를 수정합니다.
-    <br><br> 해당 회원의 userId 를 입력하고 알맞는 조직을 선택하세요.
-    <br> 변경할 Role 값을 요청으로 보내세요.
-    <br><br>***Role***
+    관리자 권한으로 유저ID와 조직을 통해 직원의 관리 조직 정보를 수정합니다.
+    <br><br> 해당 회원의 userId 를 입력하고 알맞는 관리 조직을 선택하세요.
+    <br> 변경할 Workspace 값을 요청으로 보내세요.
+    <br><br>***Workspace***
     <br>USER: 일반
     <br>ADMIN: 관리자
     """)
-
     @PatchMapping("/profile/{userId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<UserUpdateAdminResponse>> updateUserProfile(
@@ -134,6 +136,7 @@ public class UserController {
     ) {
         // 로깅, 감사용
         Long adminId = Long.valueOf(authentication.getName());
+
         log.info("관리자ID: {} 관리자가 -> 직원ID: {} 직원의 정보를 수정했습니다. ", adminId, userId);
         EmployeeStatusResponse resp = userService.updateEmployeeStatus(userId, workspace, reqs);
         return ApiResponse.success(SuccessStatus.OK, resp);

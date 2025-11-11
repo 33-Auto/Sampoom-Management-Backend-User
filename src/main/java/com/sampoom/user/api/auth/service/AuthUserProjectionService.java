@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -54,13 +53,15 @@ public class AuthUserProjectionService {
                 ? AuthUserProjection.builder()
                 .userId(p.getUserId())
                 .email(p.getEmail())
+                .workspace(p.getWorkspace())
                 .role(p.getRole())
                 .lastEventId(e.getEventId())
-                .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
+                .sourceUpdatedAt(parseOffset(String.valueOf(p.getCreatedAt())))
                 .version(ver)
                 .build()
                 : existing.toBuilder()
                 .email(p.getEmail())
+                .workspace(p.getWorkspace())
                 .role(p.getRole())
                 .lastEventId(e.getEventId())
                 .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))
@@ -79,6 +80,7 @@ public class AuthUserProjectionService {
             AuthUserProjection projection = AuthUserProjection.builder()
                     .userId(p.getUserId())
                     .email(p.getEmail())
+                    .workspace(p.getWorkspace())
                     .role(p.getRole())
                     .lastEventId(event.getEventId())
                     .sourceUpdatedAt(parseOffset(String.valueOf(p.getUpdatedAt())))

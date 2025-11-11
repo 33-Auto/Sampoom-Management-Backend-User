@@ -1,8 +1,6 @@
 package com.sampoom.user.api.agency.repository;
 
 import com.sampoom.user.api.agency.entity.AgencyEmployee;
-import com.sampoom.user.api.factory.entity.FactoryEmployee;
-import com.sampoom.user.api.warehouse.entity.WarehouseEmployee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

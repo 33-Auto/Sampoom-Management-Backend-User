@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
+public abstract class BaseMemberEntity extends SoftDeleteEntity {
 
     @Enumerated(EnumType.STRING)
     private Position position;  // 직급
@@ -60,6 +60,9 @@ public abstract class BaseEmployeeEntity extends SoftDeleteEntity {
     // setter 추가
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
     // 더티 체킹

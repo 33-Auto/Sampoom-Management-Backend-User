@@ -40,7 +40,7 @@ public class InvitationService {
                 .targetType(req.getTargetType())
                 .targetId(req.getTargetId())
                 .emailHash(emailHash)
-                .role(req.getRole())
+                .workspace(req.getWorkspace())
                 .position(req.getPosition())
                 .status(InvitationStatus.PENDING)
                 .build();
