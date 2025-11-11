@@ -45,7 +45,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
             if (accessToken.isBlank()) {
-                throw new CustomAuthenticationException(ErrorStatus.BLANK_TOKEN);
+                throw new CustomAuthenticationException(ErrorStatus.NULL_BLANK_TOKEN);
             }
             Claims claims = jwtProvider.parse(accessToken);
 
